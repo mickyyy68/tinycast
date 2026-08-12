@@ -30,7 +30,7 @@ struct NoteMarkdownPresentation: Sendable, Equatable {
 
     func activeConstruct(at location: Int) -> Construct? {
         constructs
-            .filter { location >= $0.range.location && location <= NSMaxRange($0.range) }
+            .filter { location >= $0.range.location && location < NSMaxRange($0.range) }
             .min { lhs, rhs in
                 if lhs.range.length == rhs.range.length {
                     return lhs.range.location > rhs.range.location

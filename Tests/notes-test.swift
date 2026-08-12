@@ -436,6 +436,27 @@ struct NotesTests {
                 source: underscoreSource,
                 presentation: underscorePresentation,
                 activeSourceLocation: nil).string == "a_b_c")
+        let boundarySource = "**bold** plain"
+        let boundaryPresentation = NoteMarkdownParser.parse(boundarySource)
+        check(
+            "a caret inside strong text reveals its source",
+            NoteDisplayProjection.build(
+                source: boundarySource,
+                presentation: boundaryPresentation,
+                activeSourceLocation: 4).string == boundarySource)
+        check(
+            "a caret after strong text collapses its source",
+            NoteDisplayProjection.build(
+                source: boundarySource,
+                presentation: boundaryPresentation,
+                activeSourceLocation: 8).string == "bold plain")
+        let headingBoundarySource = "# Heading\nPlain"
+        check(
+            "a caret on the next line does not reveal the preceding heading marker",
+            NoteDisplayProjection.build(
+                source: headingBoundarySource,
+                presentation: NoteMarkdownParser.parse(headingBoundarySource),
+                activeSourceLocation: 10).string == "Heading\nPlain")
         check("horizontal rules win over list parsing", grammarKinds.contains(.horizontalRule))
         check("a list marker followed by content remains a list", grammarKinds.contains(.unorderedList))
         let ruleProjection = NoteDisplayProjection.build(
