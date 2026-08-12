@@ -345,7 +345,12 @@ enum NoteMarkdownParser {
             var closing = index + tokenLength
             while closing + tokenLength <= end {
                 if matches(token, at: closing, text: text), !isEscaped(closing, text: text),
-                    markerIsAvailable(at: closing, length: tokenLength, occupied: occupied)
+                    markerIsAvailable(at: closing, length: tokenLength, occupied: occupied),
+                    token != "_"
+                        || !isIntrawordUnderscore(
+                            at: closing,
+                            length: tokenLength,
+                            text: text)
                 {
                     break
                 }

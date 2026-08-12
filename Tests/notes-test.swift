@@ -421,6 +421,21 @@ struct NotesTests {
             "matching long fences retain their language",
             grammarKinds.contains(.codeBlock(language: "swift")))
         check("intraword underscores stay literal", !grammarKinds.contains(.emphasis))
+        let underscoreSource = "_a_b_c_"
+        let underscorePresentation = NoteMarkdownParser.parse(underscoreSource)
+        check(
+            "inner intraword underscores do not close outer emphasis",
+            underscorePresentation.constructs.contains {
+                $0.kind == .emphasis
+                    && $0.range == NSRange(location: 0, length: 7)
+                    && $0.contentRange == NSRange(location: 1, length: 5)
+            })
+        check(
+            "outer underscore emphasis collapses without losing inner underscores",
+            NoteDisplayProjection.build(
+                source: underscoreSource,
+                presentation: underscorePresentation,
+                activeSourceLocation: nil).string == "a_b_c")
         check("horizontal rules win over list parsing", grammarKinds.contains(.horizontalRule))
         check("a list marker followed by content remains a list", grammarKinds.contains(.unorderedList))
         let ruleProjection = NoteDisplayProjection.build(
