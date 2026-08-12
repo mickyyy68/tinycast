@@ -52,21 +52,23 @@ performs filesystem effects; `NotesStore` drives its blocking work from detached
 
 ## Ownership and enablement
 
-`AppCore` owns `NotesStore` and `NotesSearchSession`, then lazily constructs `NotesCoordinator`.
-`NotesView` receives only the coordinator through `@Environment`; it never receives `AppCore` or
-mutates the store.
+`AppCore` owns `NotesStore`, `NotesSearchSession`, and `NotesMenuBarController`, then lazily constructs
+`NotesCoordinator`. `NotesView` receives only the coordinator through `@Environment`; it never receives
+`AppCore` or mutates the store.
 
 Settings > Notes owns `AppSettings.notesEnabled`, which is false when absent. The pane lists **Show
 Notes**, **Create Note**, and **Search Notes** from `CommandCatalog`, so it can still render them while
 `AppIndex` omits them. Every row shares its `VisibilityStore` checkbox and `HotKeyAction` recorder with
-Settings > Commands. `notesEnabled` is included in settings backups because it grants no permission
-and starts no background work.
+Settings > Commands. **Show Notes in Menu Bar** optionally installs a separate `text.page` status item
+that opens the same editor with one click. Both Notes settings are included in settings backups because
+they grant no permission and start no background work.
 
-`AppCore` observes the switch and calls `NotesCoordinator.applyEnabled()`. The coordinator projects all
-three commands into `AppIndex` and rechecks the setting on every public invocation. Disabling hides the
-panel, cancels search, flushes the draft, stops monitoring, and removes the commands. A failed flush
-retains the draft for retry and termination preservation without leaving monitoring or debounce work
-running.
+`AppCore` observes both switches. It calls `NotesCoordinator.applyEnabled()` for the feature and applies
+the status-item presence only when Notes and its menu-bar setting are both on. The coordinator projects
+all three commands into `AppIndex` and rechecks the setting on every public invocation. Disabling hides
+the panel, removes the status item, cancels search, flushes the draft, stops monitoring, and removes the
+commands. A failed flush retains the draft for retry and termination preservation without leaving
+monitoring or debounce work running.
 
 ## Commands and window
 
@@ -75,6 +77,9 @@ running.
 - **Create Note** creates and selects one unique Untitled note, including when it is the first action
   in an empty channel.
 - **Search Notes** opens the main palette in its wide Notes search mode.
+
+The optional Notes menu-bar item is a direct entry point, not a second notes surface: clicking its
+`text.page` symbol runs **Show Notes** and opens or focuses the same floating editor.
 
 Command-N uses the create path and Command-P opens the compact switcher. Escape closes the switcher
 first, then hides the panel; Command-W and the header close control hide it directly. Hiding restores

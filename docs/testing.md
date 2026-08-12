@@ -285,6 +285,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   not created
 - Enabling in Settings projects Show Notes, Create Note, and Search Notes immediately; the pane's
   visibility checkboxes and recorders match Settings > Commands
+- Show Notes in Menu Bar adds a separate `text.page` item only while Notes is enabled; clicking it opens
+  or focuses the same editor, and turning either setting off removes it immediately
 - Show Notes opens the last active note and focuses an already visible window without hiding it
 - Create Note makes one unique Untitled file, including as the first action in an empty channel
 - The title opens the switcher; Command-P focuses search, arrows move selection, Return opens, and
@@ -352,6 +354,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Every pane renders and the sidebar switches without flicker
 - A feature switch takes effect in the launcher immediately; every setting survives relaunch
 - Export produces a file; import applies it and reports a sensible summary
+- Export and import preserve both Notes enablement and its menu-bar visibility setting
 - **`snippetsEnabled` is not in the exported file**, and importing does not enable snippets
 
 ### Clean install

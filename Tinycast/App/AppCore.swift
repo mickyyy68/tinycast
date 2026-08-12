@@ -92,6 +92,9 @@ final class AppCore {
         showMessage: { [unowned self] message, tone in
             self.showMessage(message, tone: tone)
         })
+    @ObservationIgnored private lazy var notesMenuBar = NotesMenuBarController { [weak self] in
+        self?.notesCoordinator.show()
+    }
 
     @ObservationIgnored private(set) lazy var launcherCoordinator = LauncherCoordinator(
         ranking: launcherRanking, windowController: windowController,
@@ -171,6 +174,7 @@ final class AppCore {
             fileSearchCoordinator.applyEnabled()
             fileSearchCoordinator.applyPolicy()
             notesCoordinator.applyEnabled()
+            applyNotesMenuBarPresence()
             customCommands.onChange = { [weak self] _ in
                 self?.customCommandCoordinator.applyCustomCommandsPresence()
             }
@@ -308,7 +312,15 @@ final class AppCore {
                 _ = $0.quicklinksShowInLauncher
             }, reproject: { $0.quicklinkCoordinator.applyQuicklinksPresence() })
         track({ _ = $0.fileSearchEnabled }, reproject: { $0.fileSearchCoordinator.applyEnabled() })
-        track({ _ = $0.notesEnabled }, reproject: { $0.notesCoordinator.applyEnabled() })
+        track(
+            { _ = $0.notesEnabled },
+            reproject: {
+                $0.notesCoordinator.applyEnabled()
+                $0.applyNotesMenuBarPresence()
+            })
+        track(
+            { _ = $0.notesShowInMenuBar },
+            reproject: { $0.applyNotesMenuBarPresence() })
         track(
             {
                 _ = $0.fileSearchScopes
@@ -342,6 +354,10 @@ final class AppCore {
     private func applyHyperChord() {
         guard settings.hyperKey != .none else { return }
         hotKeys.retargetHyperBindings(includesShift: settings.hyperKeyIncludesShift)
+    }
+
+    private func applyNotesMenuBarPresence() {
+        notesMenuBar.apply(visible: settings.notesEnabled && settings.notesShowInMenuBar)
     }
 
     private func applyWindowCommandsPresence() {

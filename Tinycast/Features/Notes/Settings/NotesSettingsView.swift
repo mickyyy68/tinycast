@@ -17,6 +17,16 @@ struct NotesSettingsView: View {
 
             NotesCommandsSection()
                 .settingsEnabled(settings.notesEnabled)
+
+            Section {
+                Toggle(isOn: $settings.notesShowInMenuBar) {
+                    Text("Show Notes in Menu Bar")
+                    Text("Open the floating editor from a separate Notes icon.")
+                }
+            } header: {
+                Text("Menu Bar")
+            }
+            .settingsEnabled(settings.notesEnabled)
         }
         .formStyle(.grouped)
     }

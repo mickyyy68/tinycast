@@ -132,6 +132,10 @@ final class AppSettings {
         didSet { defaults.set(notesEnabled, forKey: Key.notesEnabled.rawValue) }
     }
 
+    var notesShowInMenuBar: Bool {
+        didSet { defaults.set(notesShowInMenuBar, forKey: Key.notesShowInMenuBar.rawValue) }
+    }
+
     var customCommandsEnabled: Bool {
         didSet { defaults.set(customCommandsEnabled, forKey: Key.customCommandsEnabled.rawValue) }
     }
@@ -261,6 +265,7 @@ final class AppSettings {
         fileSearchIgnorePatterns =
             defaults.stringArray(forKey: Key.fileSearchIgnorePatterns.rawValue) ?? []
         notesEnabled = defaults.bool(forKey: Key.notesEnabled.rawValue)
+        notesShowInMenuBar = defaults.bool(forKey: Key.notesShowInMenuBar.rawValue)
         customCommandsEnabled = defaults.bool(forKey: Key.customCommandsEnabled.rawValue)
         // These default on, so absence must be distinguished from a stored `false`.
         customCommandsShowInLauncher =

@@ -76,7 +76,8 @@ app: the stores (`AppIndex`, `ClipboardStore`, `SnippetsStore`, `QuicklinkStore`
 `CurrencyRateStore`, `FrequentEmojiStore`), the managers and monitors (`ClipboardManager`,
 `HotKeyManager`, `HyperKeyTap`, `RunningAppsMonitor`, `SnippetKeywordListener`), the shared state
 (`AppSettings`, `PaletteState`, `FileSearchSession`, `UninstallSession`,
-`QuicklinkArgumentSession`), `NotesStore`, the fifteen feature coordinators, and the window controllers.
+`QuicklinkArgumentSession`), `NotesStore`, the feature coordinators, and the window/status-item
+controllers.
 
 `AppDelegate.applicationDidFinishLaunching` calls `AppCore.shared.start()` and nothing else. That is the
 one wiring point, and `start()` reads as the app's whole boot sequence in one screen.
@@ -94,8 +95,9 @@ New long-lived state belongs on `AppCore`, wired in `start()`. Do not create a c
 
 ## Entry points and windows
 
-`TinycastApp` (`@main`) declares only a `MenuBarExtra` scene; everything else visible is driven
-imperatively from AppKit.
+`TinycastApp` (`@main`) declares only the general `MenuBarExtra` scene; every other visible surface is
+driven imperatively from AppKit. Notes may additionally install its AppCore-owned `NSStatusItem` when
+the user enables direct menu-bar access, because a `MenuBarExtra` cannot provide direct-click behavior.
 
 - **Command palette** — a borderless floating `NSPanel` (`Palette/PalettePanel.swift`) hosting SwiftUI
   via `NSHostingView`, managed by `PaletteWindowController`. It toggles between a compact bar and the

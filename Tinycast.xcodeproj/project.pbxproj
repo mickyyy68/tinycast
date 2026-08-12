@@ -200,6 +200,7 @@
 		C4B9E9B3E965BFDFD31EDC3D /* LauncherCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 858E08BB313EC330C2D5E50C /* LauncherCoordinator.swift */; };
 		C5F60D8681235B95DAA3314F /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 418DA899A1546F3B4AC44777 /* GeneralSettingsView.swift */; };
 		C6FBF3B96694E9050BB9FE35 /* NoteDisplayProjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 179E1D0D617B280F001D19CA /* NoteDisplayProjection.swift */; };
+		CA2A3AA29D24FFE29C0EBD35 /* NotesMenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3873052B25A123BCA5A6DA9 /* NotesMenuBarController.swift */; };
 		CA6BA9C381351D0B2CADFB9D /* IconCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5CBCCE63360E4590CF5884A /* IconCache.swift */; };
 		CAE4C44A9D2EC4AC51FD3150 /* UninstallTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EBAD0766FF9BFC6A4396474 /* UninstallTarget.swift */; };
 		CB95B0CBF0DFEDFCEA837053 /* ImageThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36C6775BBA0FC6F134296606 /* ImageThumbnail.swift */; };
@@ -423,6 +424,7 @@
 		A09528C8D92B1F3524DEE9D3 /* NoteWindowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteWindowLayout.swift; sourceTree = "<group>"; };
 		A09A0608AC763EBC26216118 /* RaycastFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaycastFormat.swift; sourceTree = "<group>"; };
 		A1306524F57602D90FCF153C /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		A3873052B25A123BCA5A6DA9 /* NotesMenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesMenuBarController.swift; sourceTree = "<group>"; };
 		A5DFA4E0FDAC12379F2D38B5 /* CalloutPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalloutPlacement.swift; sourceTree = "<group>"; };
 		A80495AE6BF7CE22BD6B20EE /* SnippetArgumentsPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetArgumentsPrompt.swift; sourceTree = "<group>"; };
 		A90559D7DB9F6F3874CAFCDE /* VolumeHUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeHUDView.swift; sourceTree = "<group>"; };
@@ -1070,6 +1072,7 @@
 				030B60C7CEA2720EE94544D2 /* NoteFormattingMenu.swift */,
 				2C720C5431B903F09024BBEF /* NotePreviewView.swift */,
 				0F5AFB680B55BBAFF2207F99 /* NotesCoordinator.swift */,
+				A3873052B25A123BCA5A6DA9 /* NotesMenuBarController.swift */,
 				91151402A1A4586B2496BF35 /* NotesPanel.swift */,
 				906E634C2217D69F94C342AC /* NotesSearchScreen.swift */,
 				50E2E570E54DEEF29FF2B65E /* NotesView.swift */,
@@ -1595,6 +1598,7 @@
 				6BAE3112ED110F1363617A79 /* NoteTextView.swift in Sources */,
 				88F2FF3D7B46A4829AB8C0AB /* NoteWindowLayout.swift in Sources */,
 				D07F272D0E095B6000D53716 /* NotesCoordinator.swift in Sources */,
+				CA2A3AA29D24FFE29C0EBD35 /* NotesMenuBarController.swift in Sources */,
 				F71FC7195AC8D6626BEE8931 /* NotesPanel.swift in Sources */,
 				75AED41394E66D6E9CBDA7EA /* NotesRepository.swift in Sources */,
 				4660094E6AC3E706746BD456 /* NotesSearchScreen.swift in Sources */,

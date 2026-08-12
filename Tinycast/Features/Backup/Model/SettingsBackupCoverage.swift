@@ -20,6 +20,7 @@ enum SettingsBackupCoverage {
         "fileSearchScopes": .fileSearchScopes,
         "fileSearchIgnorePatterns": .fileSearchIgnorePatterns,
         "notesEnabled": .notesEnabled,
+        "notesShowInMenuBar": .notesShowInMenuBar,
         "customCommandsEnabled": .customCommandsEnabled,
         "customCommandsShowInLauncher": .customCommandsShowInLauncher,
         "snippetsShowInLauncher": .snippetsShowInLauncher,

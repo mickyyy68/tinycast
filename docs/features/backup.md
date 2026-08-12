@@ -49,6 +49,9 @@ specifically that `snippetsEnabled` is absent from a produced backup. The duplic
 `AppSettings` and this file is the point: it forces a decision about every new setting rather than
 defaulting it into a backup.
 
+Notes' `notesEnabled` and `notesShowInMenuBar` are both mirrored. The latter controls a harmless local
+entry point, while Raycast import continues to map only the general `showInMenuBar` field.
+
 ## Importing
 
 Applying an import writes through `AppSettings` like any other change, so feature switches reproject into
