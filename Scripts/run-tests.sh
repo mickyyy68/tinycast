@@ -124,6 +124,7 @@ run notes-editor-test      Tinycast/Platform/Signposts.swift \
                            Tinycast/Features/Notes/Model/NoteDisplayProjection.swift \
                            Tinycast/Features/Notes/Model/NoteMarkdownEditing.swift \
                            Tinycast/Features/Notes/UI/NoteTaskOverlayController.swift \
+                           Tinycast/Features/Notes/UI/NoteTextStyler.swift \
                            Tinycast/Features/Notes/UI/NoteTextView.swift \
                            Tinycast/Features/Notes/UI/NoteEditorView.swift
 run raycast-test           Tinycast/Features/Backup/Model/RaycastFormat.swift \

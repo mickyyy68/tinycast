@@ -1,8 +1,8 @@
 # Notes
 
 Notes is an unlimited local collection of plain Markdown files in one persistent floating editor. One
-window edits one active note at a time; its title opens the searchable switcher, and the collection can
-also be shown, searched, or extended from launcher commands and global shortcuts.
+window edits one active note at a time; its title opens the compact searchable switcher, while Search
+Notes opens the main palette as a wide list-and-preview browser.
 
 The interaction reference remains Raycast's official [Notes overview](https://www.raycast.com/core-features/notes)
 and [launch article](https://www.raycast.com/blog/raycast-notes), but Tinycast's storage is deliberately
@@ -18,8 +18,8 @@ direct: the files in its Notes folder are the complete library.
   collection navigation cannot abandon an in-memory draft.
 - **A save never overwrites an unseen external edit.** `NotesRepository` coordinates the mutation and
   compares the byte revision immediately before atomic replacement, rename, or Trash.
-- **Search is on demand and unindexed.** An empty switcher query reads metadata only; a nonempty query
-  reads bodies sequentially off-main and retains no collection-sized source cache.
+- **Search and preview are on demand and unindexed.** An empty query reads metadata only; a nonempty
+  query reads bodies sequentially off-main, and the browser retains only the selected preview source.
 - **The editor never transforms canonical Markdown.** A Foundation-only parser and display projection
   map between literal UTF-16 source and the collapsed TextKit 2 buffer; only canonical source reaches
   `NotesStore`, search, conflicts, or disk.
@@ -52,8 +52,9 @@ performs filesystem effects; `NotesStore` drives its blocking work from detached
 
 ## Ownership and enablement
 
-`AppCore` owns `NotesStore` and lazily constructs `NotesCoordinator`. `NotesView` receives only the
-coordinator through `@Environment`; it never receives `AppCore` or mutates the store.
+`AppCore` owns `NotesStore` and `NotesSearchSession`, then lazily constructs `NotesCoordinator`.
+`NotesView` receives only the coordinator through `@Environment`; it never receives `AppCore` or
+mutates the store.
 
 Settings > Notes owns `AppSettings.notesEnabled`, which is false when absent. The pane lists **Show
 Notes**, **Create Note**, and **Search Notes** from `CommandCatalog`, so it can still render them while
@@ -73,26 +74,46 @@ running.
   never hides the panel.
 - **Create Note** creates and selects one unique Untitled note, including when it is the first action
   in an empty channel.
-- **Search Notes** shows the panel with the switcher open and its search field focused.
+- **Search Notes** opens the main palette in its wide Notes search mode.
 
-Command-N uses the create path and Command-P opens the switcher. Escape closes the switcher first, then
-hides the panel; Command-W and the header close control hide it directly. Hiding restores the prior
-external application or Tinycast window and flushes without delaying the order-out.
+Command-N uses the create path and Command-P opens the compact switcher. Escape closes the switcher
+first, then hides the panel; Command-W and the header close control hide it directly. Hiding restores
+the prior external application or Tinycast window and flushes without delaying the order-out.
 
 The existing 520-point editor surface remains. Its fixed header contains the note glyph, active-title
 switcher button, drag region, save/conflict state, Format, Create, Reveal, and close controls. The switcher
 replaces only the editor region, scrolls inside the current frame, and therefore never moves the
 panel's top edge or changes its saved size.
 
-An empty switcher query lists metadata-only summaries by recency. A nonempty query is split on
-whitespace, debounced for 120 milliseconds, and searches titles and literal bodies in a cancellable
-detached worker. Fuzzy title hits rank above body-only hits; results use the same compact title rows as
-the other Tinycast lists and are capped at 200. A generation check prevents a superseded search from
-publishing.
+The compact switcher and palette browser share `NotesSearchSession`. An empty query lists metadata-only
+summaries by recency. A nonempty query is split on whitespace, debounced for 120 milliseconds, and
+searches titles and literal bodies in a cancellable detached worker. The active note uses its in-memory
+draft; other notes come from disk. Fuzzy title hits rank above body-only hits, results are capped at 200,
+and a generation check prevents a superseded search from publishing.
 
 Return opens the selected note. Inline rename coordinates the file move. Command-Delete or the row
 action confirms through `DialogController`, then moves the file through `FileManager.trashItem` after a
 revision check. Deleting the last note creates a fresh Untitled note.
+
+## Search palette
+
+`PaletteMode.notesSearch` maps to `NotesSearchScreen`, following Clipboard History's 290-point list,
+vertical hairline, and preview layout. An empty query groups the recency-ordered list by Today,
+Yesterday, This Week, This Month, and Earlier. A typed query is flat and relevance-ranked so date groups
+cannot bury a stronger match. Rows contain only the `text.page` glyph and title because the right pane
+shows the complete content.
+
+Click or arrows only change the highlighted preview; double-click or Return flushes the dirty active
+note, selects the result, closes the palette, and opens the existing editor centered around its prior
+placement. A non-active preview loads through `NotesRepository` off-main and only one source is
+retained. `NotePreviewView` uses the same parser, projection, and `NoteTextStyler` as the editor, but its
+TextKit 2 view is selectable and non-editable. Tasks and links are visual only, and images remain
+literal Markdown.
+
+Opening Search Notes while the editor is visible temporarily orders the editor out. Escape restores and
+focuses it; click-away restores it without stealing focus. Back, bare Backspace, or Tab chooses to stay
+in the palette and abandons restoration. `PaletteCoordinator` reports dismissal through its AppCore-
+wired hook so Notes, rather than the palette, restores the displaced surface exactly once.
 
 ## Markdown editor
 

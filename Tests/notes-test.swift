@@ -477,6 +477,11 @@ struct NotesTests {
             currentFrame: current, height: 400, visibleFrame: visible, width: 520)
         check("resizing preserves the top edge", resized.maxY == current.maxY)
         check("resizing grows downward", resized.minY < current.minY)
+
+        let centered = NoteWindowLayout.centeredFrame(
+            currentFrame: current, height: 400, visibleFrame: visible, width: 520)
+        check("centered resizing preserves the vertical center", centered.midY == current.midY)
+        check("centered resizing preserves the horizontal center", centered.midX == current.midX)
     }
 
     private static func testStoreCollectionAndExternalEdits() async throws {
@@ -497,6 +502,7 @@ struct NotesTests {
             monitor: monitor,
             loadSelection: { selection.id },
             saveSelection: { selection.id = $0 })
+        let search = NotesSearchSession(store: store, repository: repository, debounce: .zero)
         let started = await store.create()
         check(
             "Create Note is one file when it is the first action",
@@ -520,14 +526,39 @@ struct NotesTests {
         let renamedID = await store.rename(secondID, to: "Project")
         check("rename updates active identity and title", renamedID == store.activeID && store.activeTitle == "Project")
 
-        store.updateSearchQuery("searchable")
-        await waitUntil { !store.isSearching }
-        check("on-demand search finds body text in another note", store.searchResults.contains { $0.id == firstID })
-        store.cancelSearch()
+        search.updateQuery("searchable")
+        await waitUntil { !search.isSearching }
+        check(
+            "on-demand search finds body text in another note",
+            search.results.contains { $0.id == firstID })
+        search.requestPreview(firstID)
+        await waitUntil { search.previewState != .loading }
+        check(
+            "preview loads only the selected note source",
+            search.previewID == firstID && search.previewSource == "latest searchable body")
+        search.cancel()
+        search.requestPreview(firstID)
+        let activePreviewID = try require(store.activeID)
+        search.requestPreview(activePreviewID)
+        try? await Task.sleep(for: .milliseconds(20))
+        check(
+            "a superseded preview cannot replace the final selection",
+            search.previewID == activePreviewID && search.previewSource == store.source)
         let selected = await store.select(firstID)
         check(
             "select flushes and changes the active document",
             selected && store.source == "latest searchable body")
+
+        store.updateSource("active draft phrase")
+        search.updateQuery("draft phrase")
+        await waitUntil { !search.isSearching }
+        check(
+            "search uses the active in-memory draft",
+            search.results.contains { $0.id == firstID })
+        search.requestPreview(firstID)
+        check("active preview uses the in-memory draft", search.previewSource == store.source)
+        search.cancel()
+        _ = await store.flush()
 
         let activeURL = repository.fileURL(for: firstID)
         try Data("external clean".utf8).write(to: activeURL, options: .atomic)

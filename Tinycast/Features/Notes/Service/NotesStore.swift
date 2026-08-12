@@ -26,9 +26,6 @@ final class NotesStore {
     private(set) var state: State = .idle
     private(set) var isDirty = false
     private(set) var currentIssue: Issue?
-    private(set) var searchQuery = ""
-    private(set) var searchResults: [NoteSearchResult] = []
-    private(set) var isSearching = false
     var hasLoadedDocument: Bool { revision != nil && activeID != nil }
     var activeTitle: String {
         summaries.first(where: { $0.id == activeID })?.title
@@ -47,8 +44,6 @@ final class NotesStore {
     private let saveSelection: @Sendable (NoteID) -> Void
     @ObservationIgnored private var saveTask: Task<Void, Never>?
     @ObservationIgnored private var reconcileTask: Task<Void, Never>?
-    @ObservationIgnored private var searchTask: Task<Void, Never>?
-    @ObservationIgnored private var searchWorker: Task<[NoteSearchResult], Never>?
     private var revision: NoteDocument.Revision?
     private var editGeneration = 0
     private var isStarted = false
@@ -56,7 +51,6 @@ final class NotesStore {
     private var saveAgain = false
     private var fileChangePending = false
     private var reconcileGeneration = 0
-    private var searchGeneration = 0
 
     init(
         repository: NotesRepository,
@@ -79,8 +73,6 @@ final class NotesStore {
     isolated deinit {
         saveTask?.cancel()
         reconcileTask?.cancel()
-        searchTask?.cancel()
-        searchWorker?.cancel()
     }
 
     func start() async -> Bool {
@@ -134,7 +126,6 @@ final class NotesStore {
     func create() async -> Bool {
         guard await flush() else { return false }
         isStarted = true
-        cancelSearch()
         let repository = repository
         let result = await Task.detached(priority: .utility) {
             do {
@@ -163,7 +154,6 @@ final class NotesStore {
     func select(_ id: NoteID) async -> Bool {
         guard id != activeID else { return true }
         guard await flush() else { return false }
-        cancelSearch()
         let repository = repository
         let result = await Task.detached(priority: .utility) {
             do {
@@ -267,61 +257,12 @@ final class NotesStore {
         case .success(let payload):
             summaries = payload.1
             if let document = payload.0 { apply(document, summaries: payload.1) }
-            cancelSearch()
             startMonitor()
             return true
         case .failure(let failure):
             failOperation(failure, affectsActive: id == activeID)
             return false
         }
-    }
-
-    func updateSearchQuery(_ updated: String) {
-        searchQuery = updated
-        searchTask?.cancel()
-        searchWorker?.cancel()
-        searchGeneration &+= 1
-        let generation = searchGeneration
-        let query = NoteSearch.Query(updated)
-        guard !query.isEmpty else {
-            searchResults = []
-            isSearching = false
-            return
-        }
-        isSearching = true
-        let repository = repository
-        let summaries = summaries
-        searchTask = Task { [weak self] in
-            do {
-                try await Task.sleep(for: .milliseconds(120))
-            } catch {
-                return
-            }
-            guard let self, !Task.isCancelled else { return }
-            let worker = Task.detached(priority: .userInitiated) {
-                Signposts.interval("Notes.search") {
-                    repository.search(query, summaries: summaries)
-                }
-            }
-            self.searchWorker = worker
-            let results = await worker.value
-            guard !Task.isCancelled, generation == self.searchGeneration else { return }
-            self.searchResults = results
-            self.isSearching = false
-            self.searchWorker = nil
-            self.searchTask = nil
-        }
-    }
-
-    func cancelSearch() {
-        searchTask?.cancel()
-        searchTask = nil
-        searchWorker?.cancel()
-        searchWorker = nil
-        searchGeneration &+= 1
-        searchQuery = ""
-        searchResults = []
-        isSearching = false
     }
 
     func saveConflictCopyAndReload() async -> Result<URL, NotesRepository.Failure> {
@@ -392,7 +333,6 @@ final class NotesStore {
         reconcileTask?.cancel()
         reconcileTask = nil
         reconcileGeneration &+= 1
-        cancelSearch()
         monitor.stop()
     }
 

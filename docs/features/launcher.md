@@ -206,8 +206,9 @@ execution semantics.
 ## Notes commands
 
 `CommandID.showNotes`, `.createNote`, and `.searchNotes` publish the three Notes entry points while the
-feature is enabled. Activation hides the palette without restoring focus and calls the matching
-`NotesCoordinator` action; each `HotKeyAction` reaches that same boundary and rechecks enablement.
+feature is enabled. Show and Create hide the palette before opening the editor; Search changes the
+visible palette into `.notesSearch` in place. Each path calls `NotesCoordinator`, and each
+`HotKeyAction` reaches that same boundary and rechecks enablement.
 
 `AppIndex` projects the three commands together from `notesEnabled`, independently of File Search and
 Quicklinks. They represent collection actions rather than individual notes, so Notes adds no

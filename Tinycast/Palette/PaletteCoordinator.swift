@@ -3,6 +3,8 @@ import AppKit
 /// Owns summoning the palette and nothing else; where and how big stays with the controller.
 @MainActor
 final class PaletteCoordinator {
+    var onDismiss: ((_ mode: PaletteMode, _ restoreFocus: Bool) -> Bool)?
+
     private let palette: PaletteState
     private let settings: AppSettings
     private let appIndex: AppIndex
@@ -70,8 +72,11 @@ final class PaletteCoordinator {
     }
 
     func hidePalette(restoreFocus: Bool = true) {
+        let mode = palette.mode
         fileSearch.cancel()
-        windowController.hide(restoreFocus: restoreFocus)
+        windowController.hide(restoreFocus: false)
+        let restoredByMode = onDismiss?(mode, restoreFocus) ?? false
+        if restoreFocus, !restoredByMode { windowController.restoreFocus() }
     }
 
     /// True for the slim compact bar: compact on, launcher root, empty, not overflowed.

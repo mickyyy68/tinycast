@@ -55,6 +55,12 @@ struct RootPaletteView: View {
         case .fileSearch:
             return FileSearchScreen(
                 session: fileSearch, core: core, vm: vm, openActions: openActions)
+        case .notesSearch:
+            return NotesSearchScreen(
+                session: core.notesSearch,
+                store: core.notesStore,
+                notes: core.notesCoordinator,
+                vm: vm)
         case .clipboard:
             return ClipboardScreen(
                 store: store, core: core, vm: vm, openActions: openActions,
@@ -175,14 +181,18 @@ struct RootPaletteView: View {
             vm.selection = 0
             scroll = ScrollIntent(kind: .top)
             if vm.mode == .fileSearch { fileSearch.search(vm.query) }
+            if vm.mode == .notesSearch { core.notesSearch.updateQuery(vm.query) }
         }
-        .onChange(of: vm.mode) {
+        .onChange(of: vm.mode) { oldMode, newMode in
             vm.selection = 0
             showActions = false
             scroll = ScrollIntent(kind: .top)
             // Every way out of the Uninstall screen: back chevron, bare backspace, a fresh summon.
             if vm.mode != .uninstall { uninstall.cancel() }
             if vm.mode != .fileSearch { fileSearch.cancel() }
+            if oldMode == .notesSearch, newMode != .notesSearch {
+                core.notesCoordinator.leaveSearchPalette()
+            }
             // Same for a half-filled argument form: leaving the screen abandons the pending open.
             if vm.mode != .quicklinkArguments { core.quicklinkCoordinator.cancelQuicklinkArguments() }
         }
@@ -586,11 +596,13 @@ struct RootPaletteView: View {
 
     /// Tab flips launcher↔clipboard; Calculator History exits rather than joining.
     private func toggleMode() {
+        if vm.mode == .notesSearch { core.notesCoordinator.leaveSearchPalette() }
         vm.mode = vm.mode == .launcher ? .clipboard : .launcher
     }
 
     /// Back out to a fresh root search, the same reset `prepare` does on show.
     private func exitToLauncher() {
+        if vm.mode == .notesSearch { core.notesCoordinator.leaveSearchPalette() }
         vm.prepare(mode: .launcher)
     }
 

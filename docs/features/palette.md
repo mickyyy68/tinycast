@@ -56,6 +56,7 @@ palette indexes into it. Adding a mode means adding a conformer, not a branch in
 | `.calculatorHistory` | `CalculatorHistoryScreen` | `CalculatorHistoryList` |
 | `.emoji` | `EmojiScreen` | `EmojiGridView` |
 | `.fileSearch` | `FileSearchScreen` | `FileSearchList` (see [file-search.md](file-search.md)) |
+| `.notesSearch` | `NotesSearchScreen` | `NotesSearchList` + rendered preview (see [notes.md](notes.md)) |
 | `.uninstall` | `UninstallScreen` | `UninstallList` (see [uninstall.md](uninstall.md)) |
 | `.quicklinks` | `QuicklinkListScreen` | `QuicklinkList` |
 | `.quicklinkArguments` | `QuicklinkArgumentsScreen` | `QuicklinkArgumentsView` (see [quicklinks.md](quicklinks.md#the-argument-prompt)) |
@@ -63,6 +64,11 @@ palette indexes into it. Adding a mode means adding a conformer, not a branch in
 Every mode but `.launcher` is a sub-screen that backs out to the launcher. **Tab cycles launcher ↔
 clipboard and nothing else**; the rest are reached by a command or a global hotkey, and Uninstall only
 from a launcher app's Actions menu, scoped to that app.
+
+Notes Search forwards the shared field to `NotesSearchSession`. Empty input is the complete
+metadata-only library; typed input starts its cancellable body search. Leaving the mode cancels both
+query and preview work. If the mode temporarily displaced the floating editor, palette dismissal lets
+`NotesCoordinator` consume focus restoration and restore that editor instead.
 
 The argument screen is the one mode where the search field is not a search field: it _is_ the current
 argument's input, so its placeholder names that argument and ↵ submits rather than activating a row.

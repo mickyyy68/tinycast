@@ -151,6 +151,7 @@ swiftc -O -swift-version 6 Tinycast/Platform/Signposts.swift Tinycast/DesignSyst
     Tinycast/Features/Notes/Model/NoteDisplayProjection.swift \
     Tinycast/Features/Notes/Model/NoteMarkdownEditing.swift \
     Tinycast/Features/Notes/UI/NoteTaskOverlayController.swift \
+    Tinycast/Features/Notes/UI/NoteTextStyler.swift \
     Tinycast/Features/Notes/UI/NoteTextView.swift Tinycast/Features/Notes/UI/NoteEditorView.swift \
     Tests/notes-editor-performance.swift -o /tmp/notes-editor-performance
 /tmp/notes-editor-performance
@@ -290,6 +291,15 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   Command-N creates
 - Empty switcher search reads the complete recent list; title and body searches rank correctly and a
   superseded query never publishes
+- Search Notes opens the 750-point palette with date-sectioned titles and a rendered Markdown preview;
+  typed results remain relevance-ranked rather than date-grouped
+- Click and arrows only preview; double-click and Return open the selected note without losing a dirty
+  active draft
+- Opening a short or long search result keeps the editor centered around its prior placement
+- Rapid selection never publishes a stale preview; long and empty notes render correctly, preview text
+  is selectable, and an externally removed file shows Preview unavailable
+- Search invoked over the editor temporarily hides it; Escape restores focus, click-away restores
+  visibility without stealing focus, and Back, bare Backspace, or Tab stays in the palette
 - Inline rename updates the Markdown filename without changing source; collisions receive a suffix
 - Delete confirms through Tinycast, moves the file to Trash, and selecting another note never loses an
   unsaved edit

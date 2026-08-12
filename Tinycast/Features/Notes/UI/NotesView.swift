@@ -25,6 +25,9 @@ struct NotesView: View {
         .background(Color.black.opacity(Theme.Colors.panelDimming))
         .background(VisualEffectView())
         .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.note, style: .continuous))
+        .onChange(of: notes.noteSummaries) { _, _ in
+            notes.synchronizeSearch()
+        }
     }
 
     private var header: some View {

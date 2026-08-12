@@ -33,6 +33,7 @@ final class AppCore {
     let uninstall = UninstallSession()
     let quicklinkArguments = QuicklinkArgumentSession()
     let notesStore: NotesStore
+    let notesSearch: NotesSearchSession
 
     /// Set when a quicklink editor should open with Settings; the pane consumes it.
     var pendingQuicklinkEdit: QuicklinkEditRequest?
@@ -72,8 +73,11 @@ final class AppCore {
         ranking: launcherRanking, core: self)
     @ObservationIgnored private(set) lazy var notesCoordinator = NotesCoordinator(
         store: notesStore,
+        search: notesSearch,
         settings: settings,
         appIndex: appIndex,
+        palette: palette,
+        paletteCoordinator: paletteCoordinator,
         reportFailure: { [unowned self] title, message, symbol, recovery in
             await self.reportFailure(
                 title: title, message: message, symbol: symbol, recovery: recovery)
@@ -134,14 +138,17 @@ final class AppCore {
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent(bundleID, isDirectory: true)
         let noteSelectionKey = "notesActiveFileName"
-        notesStore = NotesStore(
-            repository: NotesRepository(applicationSupportDirectory: applicationSupport),
+        let notesRepository = NotesRepository(applicationSupportDirectory: applicationSupport)
+        let notesStore = NotesStore(
+            repository: notesRepository,
             loadSelection: {
                 UserDefaults.standard.string(forKey: noteSelectionKey).map(NoteID.init(rawValue:))
             },
             saveSelection: { id in
                 UserDefaults.standard.set(id.rawValue, forKey: noteSelectionKey)
             })
+        self.notesStore = notesStore
+        notesSearch = NotesSearchSession(store: notesStore, repository: notesRepository)
     }
 
     func start() {
@@ -158,6 +165,9 @@ final class AppCore {
             clipboardManager.start()
 
             appIndex.start(settings: settings)
+            paletteCoordinator.onDismiss = { [weak self] mode, restoreFocus in
+                self?.notesCoordinator.paletteDidDismiss(mode, restoreFocus: restoreFocus) ?? false
+            }
             fileSearchCoordinator.applyEnabled()
             fileSearchCoordinator.applyPolicy()
             notesCoordinator.applyEnabled()

@@ -161,9 +161,11 @@ panel's top edge. The `textformat` header control anchors a three-row glass form
 beneath itself rather than using an `NSMenu` or system popover. It overlays the editor, restores editor
 focus after a command, and closes before the same outside click continues to its original target.
 
-The switcher occupies the editor region without changing the frame. Its plain search field and
+The compact switcher occupies the editor region without changing the frame. Its plain search field and
 keyboard-navigable rows use the shared selection/hover ramp; rename and Trash remain row actions rather
-than adding another toolbar or window.
+than adding another toolbar or window. The separate Search Notes command uses the main palette's
+Clipboard-style split: a 290-point date-sectioned title list, the shared vertical hairline, and a
+read-only rendered Markdown preview. Typed results drop date headers to preserve relevance order.
 
 The Markdown editor is an `NSTextView(usingTextLayoutManager: true)` with literal source in its text
 storage. Rendering attributes provide the white-alpha and system-font hierarchy without hiding syntax
@@ -204,12 +206,13 @@ All lists share one row grammar so launcher and clipboard look identical:
 
 ### Section headers
 
-All six palette lists (App Launcher, Clipboard, Emoji, File Search, Calculator History, Uninstall) render category labels
+All seven palette lists (App Launcher, Clipboard, Notes Search, Emoji, File Search, Calculator History,
+Uninstall) render category labels
 through one shared **`SectionHeader`** (`.subheadline.medium`, secondary — `Features/Launcher/UI/SectionHeader.swift`).
 The launcher shows a single "Results" header over search matches, and per-kind sections
-(Favorites / Applications / System Settings / Commands) for the empty query; clipboard/history use
-date buckets (Today / Yesterday / …), and the clipboard adds a "Pinned" section above them holding
-every pinned entry (filtered searches included).
+(Favorites / Applications / System Settings / Commands) for the empty query; Clipboard and unfiltered
+Notes Search use the shared `DesignSystem/DateBucket` sections (Today / Yesterday / …), and Clipboard
+adds a "Pinned" section above them holding every pinned entry (filtered searches included).
 
 Spacing lives in `Theme.Spacing`: `sectionHeaderBottom` (header → first row) and `sectionSpacing`
 (gap above every header **except the list's first**, which reads as the previous section's closing

@@ -254,13 +254,15 @@ struct NotesRepository: Sendable {
     func search(
         _ query: NoteSearch.Query,
         summaries: [NoteSummary],
+        activeID: NoteID? = nil,
+        activeSource: String? = nil,
         limit: Int = 200
     ) -> [NoteSearchResult] {
         guard !query.isEmpty, limit > 0 else { return [] }
         var results: [NoteSearchResult] = []
         for summary in summaries {
             if Task.isCancelled { break }
-            let source = try? load(summary.id).source
+            let source = summary.id == activeID ? activeSource : try? load(summary.id).source
             guard let result = NoteSearch.match(query: query, summary: summary, source: source) else {
                 continue
             }

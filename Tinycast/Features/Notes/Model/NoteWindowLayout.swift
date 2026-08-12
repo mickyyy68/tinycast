@@ -28,11 +28,32 @@ enum NoteWindowLayout {
         visibleFrame: CGRect,
         width: CGFloat
     ) -> CGRect {
-        var frame = CGRect(
-            x: currentFrame.minX,
-            y: currentFrame.maxY - height,
-            width: width,
-            height: height)
+        constrainedFrame(
+            CGRect(
+                x: currentFrame.minX,
+                y: currentFrame.maxY - height,
+                width: width,
+                height: height),
+            to: visibleFrame)
+    }
+
+    static func centeredFrame(
+        currentFrame: CGRect,
+        height: CGFloat,
+        visibleFrame: CGRect,
+        width: CGFloat
+    ) -> CGRect {
+        constrainedFrame(
+            CGRect(
+                x: currentFrame.midX - width / 2,
+                y: currentFrame.midY - height / 2,
+                width: width,
+                height: height),
+            to: visibleFrame)
+    }
+
+    private static func constrainedFrame(_ proposedFrame: CGRect, to visibleFrame: CGRect) -> CGRect {
+        var frame = proposedFrame
         if frame.maxX > visibleFrame.maxX { frame.origin.x = visibleFrame.maxX - frame.width }
         if frame.minX < visibleFrame.minX { frame.origin.x = visibleFrame.minX }
         if frame.minY < visibleFrame.minY { frame.origin.y = visibleFrame.minY }

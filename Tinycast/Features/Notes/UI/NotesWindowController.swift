@@ -3,6 +3,11 @@ import SwiftUI
 
 @MainActor
 final class NotesWindowController: NSObject {
+    enum ResizeAnchor {
+        case top
+        case center
+    }
+
     private static let frameAutosaveName = "Tinycast Floating Note"
 
     private unowned let coordinator: NotesCoordinator
@@ -13,6 +18,8 @@ final class NotesWindowController: NSObject {
     private var editorHeight: CGFloat = 0
     private var formattingFrame: CGRect?
     private var formattingMonitor: Any?
+    private var isSuspended = false
+    private var suspendedVisibleFrame: CGRect?
 
     init(coordinator: NotesCoordinator) {
         self.coordinator = coordinator
@@ -24,19 +31,44 @@ final class NotesWindowController: NSObject {
         if let formattingMonitor { NSEvent.removeMonitor(formattingMonitor) }
     }
 
-    func show(initialEditorHeight: CGFloat, focusEditor: Bool) {
+    func show(
+        initialEditorHeight: CGFloat,
+        focusEditor: Bool,
+        activate: Bool = true,
+        resizeAnchor: ResizeAnchor = .top
+    ) {
         let wasVisible = panel?.isVisible == true
-        if !wasVisible { captureFocusTarget() }
+        if !wasVisible, !isSuspended { captureFocusTarget() }
+        let preferredVisibleFrame = isSuspended ? suspendedVisibleFrame : nil
+        isSuspended = false
+        suspendedVisibleFrame = nil
         editorHeight = initialEditorHeight
         let panel = ensurePanel()
-        position(panel, restoreSavedFrame: panel.frame.origin == .zero)
+        position(
+            panel,
+            restoreSavedFrame: panel.frame.origin == .zero,
+            preferredVisibleFrame: preferredVisibleFrame,
+            resizeAnchor: resizeAnchor)
         panel.contentView?.layoutSubtreeIfNeeded()
-        panel.makeKeyAndOrderFront(nil)
-        panel.orderFrontRegardless()
-        if focusEditor { self.focusEditor(in: panel) }
+        if activate {
+            panel.makeKeyAndOrderFront(nil)
+            panel.orderFrontRegardless()
+            if focusEditor { self.focusEditor(in: panel) }
+        } else {
+            panel.orderFrontRegardless()
+        }
+    }
+
+    func suspend() {
+        guard let panel, panel.isVisible else { return }
+        suspendedVisibleFrame = panel.screen?.visibleFrame
+        isSuspended = true
+        panel.orderOut(nil)
     }
 
     func hide(restoreFocus: Bool) {
+        isSuspended = false
+        suspendedVisibleFrame = nil
         panel?.orderOut(nil)
         guard restoreFocus else { return }
         if let previousOwnWindow, previousOwnWindow.isVisible {
@@ -125,28 +157,46 @@ final class NotesWindowController: NSObject {
         panel.onHide = { [weak coordinator] in coordinator?.hide() }
         panel.onEscape = { [weak coordinator] in coordinator?.handleEscape() }
         panel.onCreate = { [weak coordinator] in coordinator?.createNote() }
-        panel.onSearch = { [weak coordinator] in coordinator?.searchNotes() }
+        panel.onSearch = { [weak coordinator] in coordinator?.openSwitcher() }
         panel.onDelete = { [weak coordinator] in coordinator?.trashSwitcherSelection() }
         panel.setFrameAutosaveName(Self.frameAutosaveName)
         self.panel = panel
         return panel
     }
 
-    private func position(_ panel: NotesPanel, restoreSavedFrame: Bool) {
+    private func position(
+        _ panel: NotesPanel,
+        restoreSavedFrame: Bool,
+        preferredVisibleFrame: CGRect? = nil,
+        resizeAnchor: ResizeAnchor = .top
+    ) {
         let restored = restoreSavedFrame && panel.setFrameUsingName(Self.frameAutosaveName)
-        let screen = panel.screen ?? NSScreen.underCursor ?? NSScreen.main
-        guard let visibleFrame = screen?.visibleFrame else { return }
+        let visibleFrame = preferredVisibleFrame
+            ?? panel.screen?.visibleFrame
+            ?? screenContaining(panel.frame)?.visibleFrame
+            ?? NSScreen.underCursor?.visibleFrame
+            ?? NSScreen.main?.visibleFrame
+        guard let visibleFrame else { return }
         let height = NoteWindowLayout.panelHeight(
             editorContentHeight: editorHeight,
             visibleScreenHeight: visibleFrame.height,
             metrics: Self.metrics)
         let frame: CGRect
         if restored || panel.frame.origin != .zero {
-            frame = NoteWindowLayout.resizedFrame(
-                currentFrame: panel.frame,
-                height: height,
-                visibleFrame: visibleFrame,
-                width: Theme.Size.noteWidth)
+            switch resizeAnchor {
+            case .top:
+                frame = NoteWindowLayout.resizedFrame(
+                    currentFrame: panel.frame,
+                    height: height,
+                    visibleFrame: visibleFrame,
+                    width: Theme.Size.noteWidth)
+            case .center:
+                frame = NoteWindowLayout.centeredFrame(
+                    currentFrame: panel.frame,
+                    height: height,
+                    visibleFrame: visibleFrame,
+                    width: Theme.Size.noteWidth)
+            }
         } else {
             frame = CGRect(
                 x: visibleFrame.midX - Theme.Size.noteWidth / 2,
@@ -156,6 +206,11 @@ final class NotesWindowController: NSObject {
                 height: height)
         }
         panel.setFrame(frame, display: panel.isVisible, animate: false)
+    }
+
+    private func screenContaining(_ frame: CGRect) -> NSScreen? {
+        let center = CGPoint(x: frame.midX, y: frame.midY)
+        return NSScreen.screens.first { $0.frame.contains(center) }
     }
 
     private func captureFocusTarget() {

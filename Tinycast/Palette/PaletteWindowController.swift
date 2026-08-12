@@ -77,7 +77,10 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         ImageThumbnail.purgePreviews()
         IconCache.purgeFitted()
         schedulePopToRoot()
-        guard restoreFocus else { return }
+        if restoreFocus { self.restoreFocus() }
+    }
+
+    func restoreFocus() {
         // Our own window first: it is still open, and activating another app would bury it.
         if let own = previousOwnWindow, own.isVisible {
             own.makeKeyAndOrderFront(nil)
@@ -227,6 +230,9 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
                 core.palette.selection = 0
                 return true
             }
+            if core.palette.mode == .notesSearch {
+                core.notesCoordinator.leaveSearchPalette()
+            }
             core.palette.prepare(mode: .launcher)
             return true
         }
@@ -237,6 +243,9 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
             else { return false }
             // Escape has no character, so it matches by key code.
             if Int(event.keyCode) == kVK_Escape {
+                if self.core.palette.mode == .notesSearch {
+                    self.core.notesCoordinator.leaveSearchPalette()
+                }
                 self.core.palette.prepare(mode: .launcher)
                 return true
             }

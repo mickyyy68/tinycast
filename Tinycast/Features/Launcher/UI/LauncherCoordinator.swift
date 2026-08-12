@@ -110,7 +110,6 @@ final class LauncherCoordinator {
             paletteCoordinator.hidePalette(restoreFocus: false)
             notesCoordinator.createNote()
         case .searchNotes:
-            paletteCoordinator.hidePalette(restoreFocus: false)
             notesCoordinator.searchNotes()
         case .searchQuicklinks:
             paletteCoordinator.showPalette(mode: .quicklinks)
