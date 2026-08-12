@@ -238,9 +238,7 @@ enum NoteMarkdownParser {
         var occupied: [OccupiedRange] = []
         let constructStart = constructs.count
         appendLinks(in: range, text: text, occupied: &occupied, into: &constructs)
-        appendPaired(
-            token: "`", kind: .inlineCode, in: range, text: text,
-            allowsNested: false, occupied: &occupied, into: &constructs)
+        appendInlineCode(in: range, text: text, occupied: &occupied, into: &constructs)
         appendPaired(
             token: "***", kind: .strongEmphasis, in: range, text: text,
             allowsNested: true, occupied: &occupied, into: &constructs)
@@ -268,6 +266,70 @@ enum NoteMarkdownParser {
         }
         for link in links where link.contentRange.length > 0 {
             scanInline(link.contentRange, text: text, into: &constructs)
+        }
+    }
+
+    private static func appendInlineCode(
+        in range: NSRange,
+        text: NSString,
+        occupied: inout [OccupiedRange],
+        into constructs: inout [NoteMarkdownPresentation.Construct]
+    ) {
+        var index = range.location
+        let end = NSMaxRange(range)
+        while index < end {
+            guard text.character(at: index) == 0x60 else {
+                index += 1
+                continue
+            }
+            let markerLength = repeatedCount(0x60, at: index, end: end, text: text)
+            guard !isEscaped(index, text: text),
+                markerIsAvailable(at: index, length: markerLength, occupied: occupied)
+            else {
+                index += markerLength
+                continue
+            }
+            var closing = index + markerLength
+            while closing < end {
+                guard text.character(at: closing) == 0x60 else {
+                    closing += 1
+                    continue
+                }
+                let closingLength = repeatedCount(0x60, at: closing, end: end, text: text)
+                if closingLength == markerLength, !isEscaped(closing, text: text),
+                    markerIsAvailable(at: closing, length: closingLength, occupied: occupied)
+                {
+                    break
+                }
+                closing += closingLength
+            }
+            guard closing + markerLength <= end, closing > index + markerLength else { return }
+            let constructRange = NSRange(
+                location: index,
+                length: closing + markerLength - index)
+            let contentRange = NSRange(
+                location: index + markerLength,
+                length: closing - index - markerLength)
+            guard occupied.allSatisfy({ existing in
+                nestedRangesAreValid(
+                    candidate: constructRange,
+                    content: contentRange,
+                    existing: existing)
+            }) else {
+                index += markerLength
+                continue
+            }
+            constructs.append(
+                .init(
+                    kind: .inlineCode,
+                    range: constructRange,
+                    contentRange: contentRange,
+                    markerRanges: [
+                        NSRange(location: index, length: markerLength),
+                        NSRange(location: closing, length: markerLength)
+                    ]))
+            occupied.append(OccupiedRange(range: constructRange, nestedRange: nil))
+            index = closing + markerLength
         }
     }
 

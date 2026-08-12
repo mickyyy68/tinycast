@@ -457,6 +457,30 @@ struct NotesTests {
                 source: headingBoundarySource,
                 presentation: NoteMarkdownParser.parse(headingBoundarySource),
                 activeSourceLocation: 10).string == "Heading\nPlain")
+        let inlineCodeSource = "``a`b``"
+        let inlineCodePresentation = NoteMarkdownParser.parse(inlineCodeSource)
+        check(
+            "inline code requires matching backtick runs",
+            inlineCodePresentation.constructs == [
+                .init(
+                    kind: .inlineCode,
+                    range: NSRange(location: 0, length: 7),
+                    contentRange: NSRange(location: 2, length: 3),
+                    markerRanges: [
+                        NSRange(location: 0, length: 2),
+                        NSRange(location: 5, length: 2)
+                    ])
+            ])
+        check(
+            "matching backtick runs preserve shorter runs as code content",
+            NoteDisplayProjection.build(
+                source: inlineCodeSource,
+                presentation: inlineCodePresentation,
+                activeSourceLocation: nil).string == "a`b")
+        check(
+            "mismatched backtick runs stay literal",
+            NoteMarkdownParser.parse("``a`b`").constructs.isEmpty
+                && NoteMarkdownParser.parse("``a```").constructs.isEmpty)
         check("horizontal rules win over list parsing", grammarKinds.contains(.horizontalRule))
         check("a list marker followed by content remains a list", grammarKinds.contains(.unorderedList))
         let ruleProjection = NoteDisplayProjection.build(
