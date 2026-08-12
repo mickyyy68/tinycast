@@ -232,7 +232,9 @@ final class NotesWindowController: NSObject {
                 width: Theme.Size.noteWidth,
                 height: height)
         }
-        panel.setFrame(frame, display: panel.isVisible, animate: false)
+        if panel.frame != frame {
+            panel.setFrame(frame, display: panel.isVisible, animate: false)
+        }
     }
 
     private func screenContaining(_ frame: CGRect) -> NSScreen? {

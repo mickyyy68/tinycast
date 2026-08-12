@@ -11,6 +11,7 @@ struct NotesEditorTests {
         testProjectedEditingAndUndoIsolation()
         testCanonicalCopyAndCut()
         testCaretAnchoringAcrossProjectionChanges()
+        testBottomEditingPreservesViewport()
         testTaskOverlayLifetime()
         print(failures == 0 ? "Notes editor tests passed" : "\(failures) tests failed")
         exit(failures == 0 ? 0 : 1)
@@ -332,6 +333,66 @@ struct NotesEditorTests {
         check(
             "revealing Markdown keeps the caret anchored in the viewport",
             before.height > 0 && after.height > 0 && abs(before.midY - after.midY) < 1)
+    }
+
+    private static func testBottomEditingPreservesViewport() {
+        let source = (0..<80).map { "Line \($0) with enough text to wrap in the editor" }
+            .joined(separator: "\n")
+        weak var panel: NSWindow?
+        let input = NoteEditorInput(
+            id: NoteID(rawValue: "Bottom Editing.md"),
+            source: source,
+            epoch: 1)
+        let view = NoteEditorView(
+            input: input,
+            onSourceChange: { _ in },
+            onContentHeightChange: { _ in
+                guard let panel else { return }
+                panel.setFrame(panel.frame, display: true, animate: false)
+            },
+            onReady: { _ in },
+            onOpenLink: { _ in })
+        let coordinator = NoteEditorView.Coordinator(parent: view)
+        let textView = NoteTextView(usingTextLayoutManager: true)
+        NoteTextStyler.configure(textView, editable: true)
+        textView.editorActions = coordinator
+        textView.editorUndoManager = coordinator.editorUndoManager
+        textView.setFrameSize(NSSize(width: 320, height: 1))
+        let scrollView = NSScrollView(frame: NSRect(x: 0, y: 0, width: 320, height: 180))
+        scrollView.documentView = textView
+        let window = NSWindow(
+            contentRect: scrollView.frame,
+            styleMask: .borderless,
+            backing: .buffered,
+            defer: false)
+        panel = window
+        window.contentView = scrollView
+        coordinator.textView = textView
+        coordinator.install(input, resetUndo: false)
+        coordinator.reportHeight()
+        window.makeFirstResponder(textView)
+
+        let caret = NSRange(location: (textView.string as NSString).length, length: 0)
+        textView.setSelectedRange(caret)
+        coordinator.textViewDidChangeSelection(
+            Notification(name: NSTextView.didChangeSelectionNotification, object: textView))
+        textView.scrollRangeToVisible(textView.selectedRange())
+        let before = textView.firstRect(
+            forCharacterRange: textView.selectedRange(),
+            actualRange: nil)
+        _ = coordinator.textView(
+            textView,
+            shouldChangeTextIn: textView.selectedRange(),
+            replacementString: " more")
+        let after = textView.firstRect(
+            forCharacterRange: textView.selectedRange(),
+            actualRange: nil)
+        check(
+            "typing at the bottom keeps the caret anchored in the viewport",
+            before.height > 0 && after.height > 0 && abs(before.midY - after.midY) < 1)
+        check(
+            "typing at the bottom does not reset the scroll position",
+            scrollView.contentView.bounds.origin.y > 0)
     }
 
     private static func testCanonicalCopyAndCut() {
