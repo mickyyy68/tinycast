@@ -8,12 +8,16 @@ struct NotesView: View {
             header
                 .frame(height: Theme.Size.noteHeaderHeight)
                 .zIndex(notes.isFormattingPresented ? 1 : 0)
-            NoteEditorView(
-                input: notes.editorInput,
-                onSourceChange: notes.updateSource,
-                onContentHeightChange: notes.updateEditorHeight,
-                onReady: notes.editorReady,
-                onOpenLink: notes.openLink)
+            if notes.isSwitcherPresented {
+                NoteSwitcherView()
+            } else {
+                NoteEditorView(
+                    input: notes.editorInput,
+                    onSourceChange: notes.updateSource,
+                    onContentHeightChange: notes.updateEditorHeight,
+                    onReady: notes.editorReady,
+                    onOpenLink: notes.openLink)
+            }
         }
         .coordinateSpace(name: "notes-window")
         .animation(.easeOut(duration: 0.12), value: notes.isFormattingPresented)
@@ -21,6 +25,9 @@ struct NotesView: View {
         .background(Color.black.opacity(Theme.Colors.panelDimming))
         .background(VisualEffectView())
         .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.note, style: .continuous))
+        .onChange(of: notes.noteSummaries) { _, _ in
+            notes.synchronizeSearch()
+        }
     }
 
     private var header: some View {
@@ -28,7 +35,7 @@ struct NotesView: View {
             SymbolImage(name: "text.page", size: Theme.Size.noteStatus)
                 .foregroundStyle(Color.primary)
                 .frame(width: Theme.Size.headerIconSlot)
-            Button(action: notes.searchNotes) {
+            Button(action: notes.openSwitcher) {
                 HStack(spacing: Theme.Spacing.xs) {
                     Text(notes.activeTitle)
                         .font(Theme.Typography.noteTitle)
@@ -45,8 +52,12 @@ struct NotesView: View {
                     true,
                     onBegan: {},
                     onEnded: notes.dragEnded)
-            statusView
-            formatButton
+            if !notes.isSwitcherPresented || status.showsInSwitcher {
+                statusView
+            }
+            if !notes.isSwitcherPresented {
+                formatButton
+            }
             headerButton(
                 title: "Create Note",
                 symbol: "plus",
@@ -138,7 +149,8 @@ struct NotesView: View {
             return NoteStatus(
                 symbol: "checkmark.circle",
                 label: "Saved",
-                color: Theme.Colors.textSecondary)
+                color: Theme.Colors.textSecondary,
+                showsInSwitcher: false)
         case .saving:
             return NoteStatus(
                 symbol: "arrow.triangle.2.circlepath",
@@ -165,4 +177,5 @@ private struct NoteStatus {
     let label: String
     let color: Color
     var actionable = false
+    var showsInSwitcher = true
 }

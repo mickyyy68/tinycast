@@ -151,9 +151,9 @@ autosaving restores position only; content determines size on every show.
 
 The header keeps a fixed slot for status so Saving, Saved, failure, and conflict symbols cannot move
 the controls. Failure and conflict symbols can be clicked to reopen their recovery report after a
-dismissal. The title opens the wide Notes browser; the central spacer alone is a `WindowDragHandle`.
-Escape, Command-W, and the hide control order the editor out. Show Notes only shows or focuses; focus
-loss leaves the panel visible.
+dismissal. The title opens the in-window note switcher; the central spacer alone is a
+`WindowDragHandle`. Escape closes the switcher before hiding, while Command-W and the hide control
+order the panel out. Show Notes only shows or focuses; focus loss leaves the panel visible.
 
 The editor is one native TextKit 2 surface backed by a literal-source/display projection. Inactive
 Markdown markers occupy no layout width; entering a construct reveals its source without moving the
@@ -161,10 +161,11 @@ panel's top edge. The `textformat` header control anchors a three-row glass form
 beneath itself rather than using an `NSMenu` or system popover. It overlays the editor, restores editor
 focus after a command, and closes before the same outside click continues to its original target.
 
-The title, Command-P, and Search Notes use one browser in the main palette. Its Clipboard-style split
-has a 290-point date-sectioned title list, the shared vertical hairline, and a read-only rendered
-Markdown preview. Typed results drop date headers to preserve relevance order. There is no compact
-in-panel switcher or browser-level Rename and Trash UI.
+The compact switcher occupies the editor region without changing the frame. Its plain search field and
+keyboard-navigable rows use the shared selection/hover ramp; rename and Trash remain row actions rather
+than adding another toolbar or window. The separate Search Notes command uses the main palette's
+Clipboard-style split: a 290-point date-sectioned title list, the shared vertical hairline, and a
+read-only rendered Markdown preview. Typed results drop date headers to preserve relevance order.
 
 The Markdown editor is an `NSTextView(usingTextLayoutManager: true)` with literal source in its text
 storage. Rendering attributes provide the white-alpha and system-font hierarchy without hiding syntax

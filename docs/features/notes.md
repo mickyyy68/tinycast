@@ -1,8 +1,8 @@
 # Notes
 
 Notes is an unlimited local collection of plain Markdown files in one persistent floating editor. One
-window edits one active note at a time; its title, Command-P, and Search Notes all open the main palette
-as a wide list-and-preview browser.
+window edits one active note at a time; its title opens the compact searchable switcher, while Search
+Notes opens the main palette as a wide list-and-preview browser.
 
 The interaction reference remains Raycast's official [Notes overview](https://www.raycast.com/core-features/notes)
 and [launch article](https://www.raycast.com/blog/raycast-notes), but Tinycast's storage is deliberately
@@ -82,29 +82,29 @@ monitoring or debounce work running.
 The optional Notes menu-bar item is a direct entry point, not a second notes surface: clicking its
 `text.page` symbol runs **Show Notes** and opens or focuses the same floating editor.
 
-Command-N uses the create path and Command-P opens Search Notes. Escape, Command-W, and the header close
-control hide the editor directly. Hiding restores the prior external application or Tinycast window and
-flushes without delaying the order-out.
+Command-N uses the create path and Command-P opens the compact switcher. Escape closes the switcher
+first, then hides the panel; Command-W and the header close control hide it directly. Hiding restores
+the prior external application or Tinycast window and flushes without delaying the order-out.
 
 The existing 520-point editor surface remains. Its fixed header contains the note glyph, active-title
-browser button, drag region, save/conflict state, Format, Create, Reveal, and close controls. Clicking
-the title temporarily suspends the editor and opens the wide browser; there is no second compact
-switching surface inside the panel.
+switcher button, drag region, save/conflict state, Format, Create, Reveal, and close controls. The
+switcher replaces only the editor region, scrolls inside the current frame, and therefore never moves the
+panel's top edge or changes its saved size.
 
 During one open-note session the panel grows with content but never shrinks after deletions or
 projection changes. Switching to a different note or explicitly hiding and reopening Notes fits the
 panel to that document again. Temporarily suspending the editor for Search Notes preserves its current
 height.
 
-The palette browser uses `NotesSearchSession`. An empty query lists metadata-only summaries by recency.
-A nonempty query is split on whitespace, debounced for 120 milliseconds, and searches titles and
-literal bodies in a cancellable detached worker. The active note uses its in-memory draft; other notes
-come from disk. Fuzzy title hits rank above body-only hits, results are capped at 200, and a generation
-check prevents a superseded search from publishing.
+The compact switcher and palette browser share `NotesSearchSession`. An empty query lists metadata-only
+summaries by recency. A nonempty query is split on whitespace, debounced for 120 milliseconds, and
+searches titles and literal bodies in a cancellable detached worker. The active note uses its in-memory
+draft; other notes come from disk. Fuzzy title hits rank above body-only hits, results are capped at 200,
+and a generation check prevents a superseded search from publishing.
 
-Return opens the selected note. The browser is read-only and has no Rename or per-row Trash action.
-Command-Delete in the editor confirms through `DialogController`, then moves the active file through
-`FileManager.trashItem` after a revision check. Deleting the last note creates a fresh Untitled note.
+Return opens the selected note. Inline rename coordinates the file move. Command-Delete or the row
+action confirms through `DialogController`, then moves the file through `FileManager.trashItem` after a
+revision check. Deleting the last note creates a fresh Untitled note.
 
 ## Search palette
 
@@ -147,7 +147,7 @@ view updates preserve undo. Marked-text composition freezes projection until com
 The `textformat` header control opens a Tinycast-owned in-window formatting overlay. It supports Normal,
 H1–H3, bold, italic, strikethrough, inline code, links, quotes, bullets, numbering, tasks, fenced code,
 and horizontal rules. Command-B, Command-I, Command-K, Shift-Command-X, and Shift-Command-7/8/9 use the
-same source-edit planner. Escape closes formatting before hiding the window.
+same source-edit planner. Escape closes formatting, then the switcher, then the window.
 
 Return continues bullets, numbered items, and tasks, with new tasks unchecked. Return on an empty item
 or Backspace at its content boundary removes the list marker; Tab and Shift-Tab nest and outdent list
@@ -184,5 +184,4 @@ top-anchored layout. `Tests/notes-editor-test.swift` uses real AppKit text objec
 layout, one source delivery per transaction, undo/redo, and stale-undo removal across note switches.
 
 The Notes manual sweep in `docs/testing.md` covers the panel, Settings projection, shortcuts, keyboard
-navigation, focus restoration, Finder, active-note Trash recovery, large-directory search, and visual
-states.
+navigation, focus restoration, Finder, Trash recovery, large-directory search, and visual states.
