@@ -67,8 +67,16 @@ enum NoteTextStyler {
 
     private static let baseAttributes: [NSAttributedString.Key: Any] = [
         .font: NSFont.preferredFont(forTextStyle: .body),
-        .foregroundColor: NSColor(Theme.Colors.noteText)
+        .foregroundColor: NSColor(Theme.Colors.noteText),
+        .paragraphStyle: proseParagraphStyle
     ]
+
+    private static let proseParagraphStyle: NSParagraphStyle = {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.lineSpacing = Theme.Spacing.xxs
+        paragraph.paragraphSpacing = Theme.Spacing.sm
+        return paragraph
+    }()
 
     private static func apply(
         _ style: NoteDisplayProjection.Style,
@@ -77,24 +85,11 @@ enum NoteTextStyler {
     ) {
         switch style {
         case .heading(let level):
-            let textStyle: NSFont.TextStyle = switch level {
-            case 1: .title1
-            case 2: .title2
-            case 3: .title3
-            case 4: .headline
-            case 5: .subheadline
-            default: .caption1
-            }
-            let font = NSFont.preferredFont(forTextStyle: textStyle)
-            storage.addAttribute(
-                .font,
-                value: level >= 5
-                    ? NSFontManager.shared.convert(font, toHaveTrait: .boldFontMask)
-                    : font,
-                range: range)
+            storage.addAttribute(.font, value: headingFont(level: level), range: range)
             applyParagraphStyle(to: storage, range: range) { paragraph in
-                paragraph.paragraphSpacingBefore = Theme.Spacing.sm
-                paragraph.paragraphSpacing = Theme.Spacing.xs
+                paragraph.lineSpacing = 0
+                paragraph.paragraphSpacingBefore = headingSpacingBefore(level: level)
+                paragraph.paragraphSpacing = headingSpacingAfter(level: level)
             }
         case .strong:
             applyFontTrait(.boldFontMask, to: storage, range: range)
@@ -154,6 +149,40 @@ enum NoteTextStyler {
                 value: NSColor(Theme.Colors.noteQuote),
                 range: range)
             applyTextBlock(blockquoteBlock(), to: storage, range: range)
+        }
+    }
+
+    private static func headingFont(level: Int) -> NSFont {
+        let bodySize = NSFont.preferredFont(forTextStyle: .body).pointSize
+        let scale: CGFloat = switch level {
+        case 1: 2
+        case 2: 1.7
+        case 3: 1.45
+        case 4: 1.25
+        case 5: 1.12
+        default: 1
+        }
+        return NSFont.systemFont(
+            ofSize: bodySize * scale,
+            weight: level <= 3 ? .bold : .semibold)
+    }
+
+    private static func headingSpacingBefore(level: Int) -> CGFloat {
+        switch level {
+        case 1: Theme.Spacing.xxl
+        case 2: Theme.Spacing.xl
+        case 3: Theme.Spacing.lg
+        case 4: Theme.Spacing.md
+        case 5: Theme.Spacing.sm
+        default: Theme.Spacing.xs
+        }
+    }
+
+    private static func headingSpacingAfter(level: Int) -> CGFloat {
+        switch level {
+        case 1: Theme.Spacing.lg
+        case 2: Theme.Spacing.md
+        default: Theme.Spacing.sm
         }
     }
 

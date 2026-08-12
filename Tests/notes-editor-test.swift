@@ -130,7 +130,7 @@ struct NotesEditorTests {
             effectiveRange: nil) as? NSFont
         check(
             "bold text inside a heading keeps the heading size",
-            headingFont?.pointSize == NSFont.preferredFont(forTextStyle: .title1).pointSize)
+            (headingFont?.pointSize ?? 0) > NSFont.preferredFont(forTextStyle: .body).pointSize)
         check(
             "bold text inside a heading keeps its bold trait",
             headingFont?.fontDescriptor.symbolicTraits.contains(.bold) == true)
@@ -198,11 +198,30 @@ struct NotesEditorTests {
             headingFonts.count == 3
                 && headingFonts[0].pointSize > headingFonts[1].pointSize
                 && headingFonts[1].pointSize > headingFonts[2].pointSize)
+        let bodySize = NSFont.preferredFont(forTextStyle: .body).pointSize
+        check(
+            "the lower heading levels stay balanced with body text",
+            headingFonts.count == 3
+                && headingFonts[0].pointSize < bodySize * 1.5
+                && headingFonts[2].pointSize >= bodySize)
+
+        let proseInput = NoteEditorInput(
+            id: NoteID(rawValue: "Prose.md"),
+            source: "First paragraph\n\nSecond paragraph",
+            epoch: 7)
+        coordinator.install(proseInput, resetUndo: true)
+        let proseStyle = textView.textStorage?.attribute(
+            .paragraphStyle,
+            at: 0,
+            effectiveRange: nil) as? NSParagraphStyle
+        check(
+            "prose has readable line and paragraph rhythm",
+            (proseStyle?.lineSpacing ?? 0) > 0 && (proseStyle?.paragraphSpacing ?? 0) > 0)
 
         let existingLinkInput = NoteEditorInput(
             id: NoteID(rawValue: "Existing Link.md"),
             source: "[label](https://old.test)",
-            epoch: 7)
+            epoch: 8)
         coordinator.install(existingLinkInput, resetUndo: true)
         let labelRange = (textView.string as NSString).range(of: "label")
         textView.setSelectedRange(labelRange)
@@ -219,12 +238,12 @@ struct NotesEditorTests {
         let taskInput = NoteEditorInput(
             id: NoteID(rawValue: "Task.md"),
             source: "- [ ] Task",
-            epoch: 8)
+            epoch: 9)
         coordinator.install(taskInput, resetUndo: true)
         let checkbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
         window.contentView?.addSubview(checkbox)
         window.makeFirstResponder(checkbox)
-        coordinator.toggleTask(sourceRange: NSRange(location: 2, length: 3), generation: 8)
+        coordinator.toggleTask(sourceRange: NSRange(location: 2, length: 3), generation: 9)
         check("clicking a task emits its checked Markdown", changes.last == "- [x] Task")
         check("clicking a task keeps the rendered marker", !textView.string.contains("[x]"))
         check("clicking a task does not pull focus into the editor", window.firstResponder === checkbox)
@@ -232,7 +251,7 @@ struct NotesEditorTests {
         let reverseInput = NoteEditorInput(
             id: NoteID(rawValue: "Reverse Selection.md"),
             source: "**bold** plain",
-            epoch: 9)
+            epoch: 10)
         coordinator.install(reverseInput, resetUndo: true)
         window.makeFirstResponder(textView)
         let reverseCaret = (textView.string as NSString).range(of: " plain").location
@@ -251,7 +270,7 @@ struct NotesEditorTests {
         let menuInput = NoteEditorInput(
             id: NoteID(rawValue: "Formatting Menu.md"),
             source: "**bold**",
-            epoch: 10)
+            epoch: 11)
         coordinator.install(menuInput, resetUndo: true)
         window.makeFirstResponder(textView)
         textView.setSelectedRange(NSRange(location: 4, length: 0))
