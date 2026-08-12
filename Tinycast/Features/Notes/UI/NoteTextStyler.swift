@@ -58,7 +58,7 @@ enum NoteTextStyler {
             range = NSRange(location: 0, length: storage.length)
         }
         storage.setAttributes(baseAttributes, range: range)
-        for span in projection.styles {
+        for span in projection.styleSpans(overlapping: range) {
             let intersection = NSIntersectionRange(span.range, range)
             guard intersection.length > 0, NSMaxRange(intersection) <= storage.length else { continue }
             apply(span.style, to: storage, range: intersection)

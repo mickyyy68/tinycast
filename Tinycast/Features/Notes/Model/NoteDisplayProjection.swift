@@ -62,6 +62,7 @@ struct NoteDisplayProjection: Sendable, Equatable {
     let string: String
     let segments: [Segment]
     let styles: [StyleSpan]
+    private let stylePrefixMaximumEnds: [Int]
     let tasks: [TaskAnchor]
     let links: [LinkAnchor]
     let copyAnchors: [CopyAnchor]
@@ -136,6 +137,7 @@ struct NoteDisplayProjection: Sendable, Equatable {
             string: output,
             segments: segments,
             styles: [],
+            stylePrefixMaximumEnds: [],
             tasks: [],
             links: [],
             copyAnchors: [],
@@ -220,6 +222,33 @@ struct NoteDisplayProjection: Sendable, Equatable {
 
     func sourceRange(forReplacingDisplayRange range: NSRange) -> NSRange {
         sourceRange(forCopyingDisplayRange: range)
+    }
+
+    func styleSpans(overlapping range: NSRange) -> ArraySlice<StyleSpan> {
+        guard range.length > 0, !styles.isEmpty else { return styles[0..<0] }
+        var lower = 0
+        var upper = stylePrefixMaximumEnds.count
+        while lower < upper {
+            let middle = (lower + upper) / 2
+            if stylePrefixMaximumEnds[middle] <= range.location {
+                lower = middle + 1
+            } else {
+                upper = middle
+            }
+        }
+        let firstCandidate = lower
+        lower = firstCandidate
+        upper = styles.count
+        let rangeEnd = NSMaxRange(range)
+        while lower < upper {
+            let middle = (lower + upper) / 2
+            if styles[middle].range.location < rangeEnd {
+                lower = middle + 1
+            } else {
+                upper = middle
+            }
+        }
+        return styles[firstCandidate..<lower]
     }
 
     private struct Transform {
@@ -381,15 +410,30 @@ struct NoteDisplayProjection: Sendable, Equatable {
                         displayRange: contentDisplayRange))
             }
         }
+        let orderedStyles = styles.enumerated().sorted { lhs, rhs in
+            if lhs.element.range.location == rhs.element.range.location {
+                return lhs.offset < rhs.offset
+            }
+            return lhs.element.range.location < rhs.element.range.location
+        }.map(\.element)
         return NoteDisplayProjection(
             sourceLength: sourceLength,
             string: string,
             segments: segments,
-            styles: styles,
+            styles: orderedStyles,
+            stylePrefixMaximumEnds: Self.prefixMaximumEnds(for: orderedStyles),
             tasks: tasks,
             links: links,
             copyAnchors: copyAnchors,
             activeRange: activeRange)
+    }
+
+    private static func prefixMaximumEnds(for styles: [StyleSpan]) -> [Int] {
+        var maximumEnd = 0
+        return styles.map { span in
+            maximumEnd = max(maximumEnd, NSMaxRange(span.range))
+            return maximumEnd
+        }
     }
 
     private func markersInheritSemanticStyle(

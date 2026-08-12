@@ -523,6 +523,16 @@ struct NotesTests {
             "mismatched backtick runs stay literal",
             NoteMarkdownParser.parse("``a`b`").constructs.isEmpty
                 && NoteMarkdownParser.parse("``a```").constructs.isEmpty)
+        let indexedStyleSource = "**before**\n```\ncode\nkeep\n```\n_after_"
+        let indexedStyleProjection = NoteDisplayProjection.build(
+            source: indexedStyleSource,
+            presentation: NoteMarkdownParser.parse(indexedStyleSource),
+            activeSourceLocation: nil)
+        let keepRange = (indexedStyleProjection.string as NSString).range(of: "keep")
+        let keepStyles = indexedStyleProjection.styleSpans(overlapping: keepRange).map(\.style)
+        check(
+            "style lookup retains an outer multiline construct",
+            keepStyles == [.codeBlock])
         check("horizontal rules win over list parsing", grammarKinds.contains(.horizontalRule))
         check("a list marker followed by content remains a list", grammarKinds.contains(.unorderedList))
         let ruleProjection = NoteDisplayProjection.build(
