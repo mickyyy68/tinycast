@@ -289,9 +289,9 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   or focuses the same editor, and turning either setting off removes it immediately
 - Show Notes opens the last active note and focuses an already visible window without hiding it
 - Create Note makes one unique Untitled file, including as the first action in an empty channel
-- The title opens the switcher; Command-P focuses search, arrows move selection, Return opens, and
-  Command-N creates
-- Empty switcher search reads the complete recent list; title and body searches rank correctly and a
+- The title and Command-P both suspend the editor and open the same wide Search Notes browser;
+  Command-N creates, and no compact switcher remains
+- Empty browser search reads the complete recent list; title and body searches rank correctly and a
   superseded query never publishes
 - Search Notes opens the 750-point palette with date-sectioned titles and a rendered Markdown preview;
   typed results remain relevance-ranked rather than date-grouped
@@ -302,9 +302,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   is selectable, and an externally removed file shows Preview unavailable
 - Search invoked over the editor temporarily hides it; Escape restores focus, click-away restores
   visibility without stealing focus, and Back, bare Backspace, or Tab stays in the palette
-- Inline rename updates the Markdown filename without changing source; collisions receive a suffix
-- Delete confirms through Tinycast, moves the file to Trash, and selecting another note never loses an
-  unsaved edit
+- Command-Delete in the editor confirms through Tinycast and moves the active file to Trash; the
+  read-only browser has no Rename or row-level Trash actions, and switching never loses an unsaved edit
 - An existing `Floating Note.md` appears as an ordinary note without conversion
 - Markdown markers collapse without source-width gaps and return when the caret enters their construct;
   links show labels, task checkboxes toggle, and images remain literal source
