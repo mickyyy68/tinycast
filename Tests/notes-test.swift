@@ -470,6 +470,35 @@ struct NotesTests {
             "long notes stop at the display fraction",
             NoteWindowLayout.panelHeight(
                 editorContentHeight: 900, visibleScreenHeight: 800, metrics: metrics) == 560)
+        check(
+            "live editing retains an already-expanded panel",
+            NoteWindowLayout.growOnlyPanelHeight(
+                editorContentHeight: 10,
+                currentPanelHeight: 400,
+                visibleScreenHeight: 900,
+                metrics: metrics) == 400)
+        check(
+            "live editing can grow beyond the retained panel height",
+            NoteWindowLayout.growOnlyPanelHeight(
+                editorContentHeight: 450,
+                currentPanelHeight: 400,
+                visibleScreenHeight: 900,
+                metrics: metrics) == 534)
+        check(
+            "grow-only sizing still obeys the display fraction",
+            NoteWindowLayout.growOnlyPanelHeight(
+                editorContentHeight: 900,
+                currentPanelHeight: 640,
+                visibleScreenHeight: 800,
+                metrics: metrics) == 560)
+        check(
+            "a new sizing session can fit a short note again",
+            NoteWindowLayout.panelHeight(
+                editorContentHeight: 10, visibleScreenHeight: 900, metrics: metrics) == 220)
+        check(
+            "restoring a suspended editor preserves its panel height",
+            NoteWindowLayout.preservedPanelHeight(
+                400, visibleScreenHeight: 900, metrics: metrics) == 400)
 
         let current = CGRect(x: 300, y: 300, width: 520, height: 220)
         let visible = CGRect(x: 0, y: 0, width: 1_200, height: 900)

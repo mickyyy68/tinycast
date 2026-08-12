@@ -316,6 +316,10 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Marked-text input, emoji, combining marks, Copy, Cut, Paste, Select All, and Command-click links keep
   exact Markdown and ordinary clicks only reveal source
 - The panel grows downward without moving its header, stops at its screen-aware cap, then scrolls
+- After a tall note expands the panel, deleting most of its content keeps the workspace tall; typing
+  enough content grows it again, while switching notes or hiding and reopening fits the new session
+- Opening Search Notes over a tall editor and cancelling restores the editor at the same height
+- Leaving Notes Search through Back, bare Backspace, or Tab resets the sizing session for the next open
 - Clicking another app leaves the panel visible; Escape, Command-W, and close hide it
 - Hiding restores the previous external app or Tinycast window, and the dragged position survives relaunch
 - Reveal opens Finder with the active Markdown file selected

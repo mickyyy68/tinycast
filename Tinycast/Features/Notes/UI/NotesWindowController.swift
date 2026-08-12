@@ -8,6 +8,12 @@ final class NotesWindowController: NSObject {
         case center
     }
 
+    enum HeightBehavior {
+        case fitContent
+        case growOnly
+        case preserve
+    }
+
     private static let frameAutosaveName = "Tinycast Floating Note"
 
     private unowned let coordinator: NotesCoordinator
@@ -18,7 +24,7 @@ final class NotesWindowController: NSObject {
     private var editorHeight: CGFloat = 0
     private var formattingFrame: CGRect?
     private var formattingMonitor: Any?
-    private var isSuspended = false
+    private(set) var isSuspended = false
     private var suspendedVisibleFrame: CGRect?
 
     init(coordinator: NotesCoordinator) {
@@ -35,7 +41,8 @@ final class NotesWindowController: NSObject {
         initialEditorHeight: CGFloat,
         focusEditor: Bool,
         activate: Bool = true,
-        resizeAnchor: ResizeAnchor = .top
+        resizeAnchor: ResizeAnchor = .top,
+        heightBehavior: HeightBehavior = .fitContent
     ) {
         let wasVisible = panel?.isVisible == true
         if !wasVisible, !isSuspended { captureFocusTarget() }
@@ -48,7 +55,8 @@ final class NotesWindowController: NSObject {
             panel,
             restoreSavedFrame: panel.frame.origin == .zero,
             preferredVisibleFrame: preferredVisibleFrame,
-            resizeAnchor: resizeAnchor)
+            resizeAnchor: resizeAnchor,
+            heightBehavior: heightBehavior)
         panel.contentView?.layoutSubtreeIfNeeded()
         if activate {
             panel.makeKeyAndOrderFront(nil)
@@ -66,9 +74,13 @@ final class NotesWindowController: NSObject {
         panel.orderOut(nil)
     }
 
-    func hide(restoreFocus: Bool) {
+    func abandonSuspension() {
         isSuspended = false
         suspendedVisibleFrame = nil
+    }
+
+    func hide(restoreFocus: Bool) {
+        abandonSuspension()
         panel?.orderOut(nil)
         guard restoreFocus else { return }
         if let previousOwnWindow, previousOwnWindow.isVisible {
@@ -83,7 +95,7 @@ final class NotesWindowController: NSObject {
         guard height.isFinite, height > 0 else { return }
         editorHeight = height
         guard let panel else { return }
-        position(panel, restoreSavedFrame: false)
+        position(panel, restoreSavedFrame: false, heightBehavior: .growOnly)
     }
 
     func editorReady(_ textView: NoteTextView) {
@@ -168,7 +180,8 @@ final class NotesWindowController: NSObject {
         _ panel: NotesPanel,
         restoreSavedFrame: Bool,
         preferredVisibleFrame: CGRect? = nil,
-        resizeAnchor: ResizeAnchor = .top
+        resizeAnchor: ResizeAnchor = .top,
+        heightBehavior: HeightBehavior = .fitContent
     ) {
         let restored = restoreSavedFrame && panel.setFrameUsingName(Self.frameAutosaveName)
         let visibleFrame = preferredVisibleFrame
@@ -177,10 +190,24 @@ final class NotesWindowController: NSObject {
             ?? NSScreen.underCursor?.visibleFrame
             ?? NSScreen.main?.visibleFrame
         guard let visibleFrame else { return }
-        let height = NoteWindowLayout.panelHeight(
-            editorContentHeight: editorHeight,
-            visibleScreenHeight: visibleFrame.height,
-            metrics: Self.metrics)
+        let height: CGFloat = switch heightBehavior {
+        case .fitContent:
+            NoteWindowLayout.panelHeight(
+                editorContentHeight: editorHeight,
+                visibleScreenHeight: visibleFrame.height,
+                metrics: Self.metrics)
+        case .growOnly:
+            NoteWindowLayout.growOnlyPanelHeight(
+                editorContentHeight: editorHeight,
+                currentPanelHeight: panel.frame.height,
+                visibleScreenHeight: visibleFrame.height,
+                metrics: Self.metrics)
+        case .preserve:
+            NoteWindowLayout.preservedPanelHeight(
+                panel.frame.height,
+                visibleScreenHeight: visibleFrame.height,
+                metrics: Self.metrics)
+        }
         let frame: CGRect
         if restored || panel.frame.origin != .zero {
             switch resizeAnchor {

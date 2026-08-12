@@ -204,6 +204,7 @@ final class NotesCoordinator {
         isFormattingPresented = false
         operationTask = Task { [weak self] in
             guard let self else { return }
+            let previousID = store.activeID
             let selected = await store.select(id)
             operationTask = nil
             guard selected, settings.notesEnabled, !Task.isCancelled else {
@@ -211,7 +212,9 @@ final class NotesCoordinator {
                 return
             }
             closeSwitcher()
-            showLoadedNote(focusEditor: true)
+            showLoadedNote(
+                focusEditor: true,
+                heightBehavior: previousID == store.activeID ? .preserve : .fitContent)
         }
     }
 
@@ -219,6 +222,7 @@ final class NotesCoordinator {
         guard settings.notesEnabled, operationTask == nil else { return }
         operationTask = Task { [weak self] in
             guard let self else { return }
+            let previousID = store.activeID
             let selected = await store.select(id)
             operationTask = nil
             guard selected, settings.notesEnabled, !Task.isCancelled else {
@@ -228,7 +232,10 @@ final class NotesCoordinator {
             restoresEditorAfterSearch = false
             search.cancel()
             paletteCoordinator.hidePalette(restoreFocus: false)
-            showLoadedNote(focusEditor: true, resizeAnchor: .center)
+            showLoadedNote(
+                focusEditor: true,
+                resizeAnchor: .center,
+                heightBehavior: previousID == store.activeID ? .preserve : .fitContent)
         }
     }
 
@@ -240,12 +247,16 @@ final class NotesCoordinator {
             return false
         }
         restoresEditorAfterSearch = false
-        showLoadedNote(focusEditor: restoreFocus, activate: restoreFocus)
+        showLoadedNote(
+            focusEditor: restoreFocus,
+            activate: restoreFocus,
+            heightBehavior: .preserve)
         return true
     }
 
     func leaveSearchPalette() {
         restoresEditorAfterSearch = false
+        windowController.abandonSuspension()
         search.cancel()
     }
 
@@ -261,7 +272,9 @@ final class NotesCoordinator {
             }
             switcherSelection = renamedID
             search.synchronize()
-            if renamedID == store.activeID { showLoadedNote(focusEditor: false) }
+            if renamedID == store.activeID {
+                showLoadedNote(focusEditor: false, heightBehavior: .preserve)
+            }
         }
     }
 
@@ -276,6 +289,7 @@ final class NotesCoordinator {
         else { return }
         operationTask = Task { [weak self] in
             guard let self else { return }
+            let previousID = store.activeID
             let confirmed = await confirmTrash(title)
             guard confirmed, settings.notesEnabled, !Task.isCancelled else {
                 operationTask = nil
@@ -289,7 +303,9 @@ final class NotesCoordinator {
             }
             switcherSelection = store.activeID ?? store.summaries.first?.id
             search.synchronize()
-            showLoadedNote(focusEditor: !isSwitcherPresented)
+            showLoadedNote(
+                focusEditor: !isSwitcherPresented,
+                heightBehavior: previousID == store.activeID ? .preserve : .fitContent)
         }
     }
 
@@ -384,7 +400,12 @@ final class NotesCoordinator {
                 guard created, settings.notesEnabled, !Task.isCancelled else { return }
                 let next = pendingPresentation
                 pendingPresentation = nil
-                await present(next == .create ? .editor : next ?? .editor)
+                if next == .searchPalette {
+                    await present(.searchPalette)
+                } else {
+                    closeSwitcher()
+                    showLoadedNote(focusEditor: true, heightBehavior: .fitContent)
+                }
                 return
             }
             let loaded = await store.start()
@@ -405,11 +426,14 @@ final class NotesCoordinator {
         switch presentation {
         case .editor:
             closeSwitcher()
-            showLoadedNote(focusEditor: true)
+            showLoadedNote(
+                focusEditor: true,
+                heightBehavior: windowController.isVisible || windowController.isSuspended
+                    ? .preserve : .fitContent)
         case .create:
             guard await store.create() else { return }
             closeSwitcher()
-            showLoadedNote(focusEditor: true)
+            showLoadedNote(focusEditor: true, heightBehavior: .fitContent)
         case .searchPalette:
             closeSwitcher(focusEditor: false)
             restoresEditorAfterSearch = windowController.isVisible
@@ -426,7 +450,8 @@ final class NotesCoordinator {
     private func showLoadedNote(
         focusEditor: Bool,
         activate: Bool = true,
-        resizeAnchor: NotesWindowController.ResizeAnchor = .top
+        resizeAnchor: NotesWindowController.ResizeAnchor = .top,
+        heightBehavior: NotesWindowController.HeightBehavior = .fitContent
     ) {
         let editorHeight = NoteEditorView.contentHeight(
             for: store.source,
@@ -435,7 +460,8 @@ final class NotesCoordinator {
             initialEditorHeight: editorHeight,
             focusEditor: focusEditor,
             activate: activate,
-            resizeAnchor: resizeAnchor)
+            resizeAnchor: resizeAnchor,
+            heightBehavior: heightBehavior)
     }
 
     private func present(_ issue: NotesStore.Issue) {

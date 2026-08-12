@@ -26,7 +26,8 @@ direct: the files in its Notes folder are the complete library.
 - **Off means no entry point or Notes work.** The feature is off by default; its shortcuts no-op, its
   commands are absent, and enabling alone does not enumerate or create the Notes directory.
 - **The top edge is the resize anchor.** `NotesWindowController` alone owns the frame while the active
-  document grows downward and scrolls after its screen-aware maximum.
+  document grows downward, stays expanded when content is deleted, and scrolls after its screen-aware
+  maximum.
 
 ## Storage and identity
 
@@ -89,6 +90,11 @@ The existing 520-point editor surface remains. Its fixed header contains the not
 switcher button, drag region, save/conflict state, Format, Create, Reveal, and close controls. The switcher
 replaces only the editor region, scrolls inside the current frame, and therefore never moves the
 panel's top edge or changes its saved size.
+
+During one open-note session the panel grows with content but never shrinks after deletions or
+projection changes. Switching to a different note or explicitly hiding and reopening Notes fits the
+panel to that document again. Temporarily suspending the editor for Search Notes preserves its current
+height.
 
 The compact switcher and palette browser share `NotesSearchSession`. An empty query lists metadata-only
 summaries by recency. A nonempty query is split on whitespace, debounced for 120 milliseconds, and
