@@ -457,6 +457,48 @@ struct NotesTests {
                 source: headingBoundarySource,
                 presentation: NoteMarkdownParser.parse(headingBoundarySource),
                 activeSourceLocation: 10).string == "Heading\nPlain")
+        let activeHeadingProjection = NoteDisplayProjection.build(
+            source: "# Heading",
+            presentation: NoteMarkdownParser.parse("# Heading"),
+            activeSourceLocation: 3)
+        check(
+            "revealed heading markers inherit the heading style",
+            activeHeadingProjection.styles.contains {
+                $0.style == .heading(level: 1) && $0.range == NSRange(location: 0, length: 9)
+            })
+        check(
+            "revealed heading markers receive the subdued markup style",
+            activeHeadingProjection.styles.contains {
+                $0.style == .markup && $0.range == NSRange(location: 0, length: 2)
+            })
+        let activeStrongProjection = NoteDisplayProjection.build(
+            source: "**bold**",
+            presentation: NoteMarkdownParser.parse("**bold**"),
+            activeSourceLocation: 4)
+        check(
+            "revealed emphasis markers inherit their semantic style",
+            activeStrongProjection.styles.contains {
+                $0.style == .strong && $0.range == NSRange(location: 0, length: 8)
+            })
+        check(
+            "revealed emphasis markers receive the subdued markup style",
+            activeStrongProjection.styles.compactMap { span in
+                span.style == .markup ? span.range : nil
+            } == [NSRange(location: 0, length: 2), NSRange(location: 6, length: 2)])
+        let nestedHeadingProjection = NoteDisplayProjection.build(
+            source: "# **Bold** heading",
+            presentation: NoteMarkdownParser.parse("# **Bold** heading"),
+            activeSourceLocation: 5)
+        check(
+            "revealed ancestor markers retain their heading typography",
+            nestedHeadingProjection.styles.contains {
+                $0.style == .heading(level: 1) && $0.range == NSRange(location: 0, length: 18)
+            })
+        check(
+            "revealed ancestor markers remain visually subdued",
+            nestedHeadingProjection.styles.contains {
+                $0.style == .markup && $0.range == NSRange(location: 0, length: 2)
+            })
         let inlineCodeSource = "``a`b``"
         let inlineCodePresentation = NoteMarkdownParser.parse(inlineCodeSource)
         check(

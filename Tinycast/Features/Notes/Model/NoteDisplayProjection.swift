@@ -327,14 +327,29 @@ struct NoteDisplayProjection: Sendable, Equatable {
         for construct in presentation.constructs {
             let style = style(for: construct.kind)
             let contentDisplayRange = displayRange(forSourceRange: construct.contentRange)
+            let isActive = active?.range == construct.range
+            let markersAreVisible = active.map {
+                NSIntersectionRange($0.range, construct.range).length > 0
+            } ?? false
+            let styledSourceRange = markersAreVisible
+                && markersInheritSemanticStyle(for: construct.kind)
+                ? construct.range : construct.contentRange
+            let styledDisplayRange = displayRange(forSourceRange: styledSourceRange)
             let activeHorizontalRule: Bool
             if case .horizontalRule = construct.kind {
-                activeHorizontalRule = active?.range == construct.range
+                activeHorizontalRule = isActive
             } else {
                 activeHorizontalRule = false
             }
-            if contentDisplayRange.length > 0, !activeHorizontalRule {
-                styles.append(StyleSpan(style: style, range: contentDisplayRange))
+            if styledDisplayRange.length > 0, !activeHorizontalRule {
+                styles.append(StyleSpan(style: style, range: styledDisplayRange))
+            }
+            if markersAreVisible {
+                styles.append(contentsOf: construct.markerRanges.compactMap { marker in
+                    let markerDisplayRange = displayRange(forSourceRange: marker)
+                    guard markerDisplayRange.length > 0 else { return nil }
+                    return StyleSpan(style: .markup, range: markerDisplayRange)
+                })
             }
             switch construct.kind {
             case .task(let checked):
@@ -375,6 +390,18 @@ struct NoteDisplayProjection: Sendable, Equatable {
             links: links,
             copyAnchors: copyAnchors,
             activeRange: activeRange)
+    }
+
+    private func markersInheritSemanticStyle(
+        for kind: NoteMarkdownPresentation.Construct.Kind
+    ) -> Bool {
+        switch kind {
+        case .heading, .strong, .emphasis, .strongEmphasis, .strikethrough, .inlineCode,
+            .blockquote, .codeBlock:
+            true
+        case .link, .image, .unorderedList, .orderedList, .task, .horizontalRule:
+            false
+        }
     }
 
     private func style(for kind: NoteMarkdownPresentation.Construct.Kind) -> Style {
