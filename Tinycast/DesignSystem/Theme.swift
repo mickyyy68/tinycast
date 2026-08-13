@@ -138,6 +138,10 @@ enum Theme {
         static let tooltip: TimeInterval = 0.15
     }
 
+    enum Opacity {
+        static let noteInactiveChrome: CGFloat = 0.35
+    }
+
     /// System text styles (not hardcoded sizes) so the UI honors Dynamic Type.
     enum Typography {
         /// One size, two frameworks: `TextTrailingDragHandle` measures what the field renders.
@@ -183,6 +187,7 @@ enum Theme {
         static let noteCode = Color.white.opacity(0.72)
         static let noteLink = Color.white.opacity(0.80)
         static let noteQuote = Color.white.opacity(0.62)
+        static let noteCurrent = Color.blue
         /// The Settings card: a faint surface whose border doubles as the row divider.
         static let cardFill = Color.white.opacity(0.05)
         static let cardStroke = Color.white.opacity(0.10)

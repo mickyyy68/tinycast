@@ -1,8 +1,8 @@
 # Notes
 
 Notes is an unlimited local collection of plain Markdown files in one persistent floating editor. One
-window edits one active note at a time; its title opens the compact searchable switcher, while Search
-Notes opens the main palette as a wide list-and-preview browser.
+window edits one active note at a time; its header switcher control opens the compact searchable
+browser, while Search Notes opens the main palette as a wide list-and-preview browser.
 
 The interaction reference remains Raycast's official [Notes overview](https://www.raycast.com/core-features/notes)
 and [launch article](https://www.raycast.com/blog/raycast-notes), but Tinycast's storage is deliberately
@@ -84,25 +84,28 @@ monitoring or debounce work running.
 The optional Notes menu-bar item is a direct entry point, not a second notes surface: clicking its
 `text.page` symbol runs **Show Notes** and opens or focuses the same floating editor.
 
-Command-N uses the create path and Command-P opens the compact switcher. Escape closes the switcher
-first, then hides the panel; Command-W and the header close control hide it directly. Hiding restores
-the prior external application or Tinycast window and flushes without delaying the order-out.
+Command-N uses the create path and Command-P opens the compact switcher. Escape closes one layer per
+press: the switcher first, expanded formatting next, then the panel. Command-W and the leading Hide
+control hide directly. Hiding restores the prior external application or Tinycast window and flushes
+without delaying the order-out.
 
-The existing 520-point editor surface remains with a 320-point minimum height. Its fixed header centers
-the active-title switcher button, keeps clean saved state hidden at rest, and reveals Create, Reveal, and
-hide controls on hover without shifting the title. Saving, failure, and conflict state stays visible.
-The switcher replaces only the editor region, scrolls inside the current frame, and therefore never moves
-the panel's top edge or changes its saved size.
+The 520-point editor surface retains a 320-point minimum and grows to the smaller of 840 points or the
+display height minus two 16-point margins. Its fixed header keeps the display-only active title exactly
+centered, with Hide in three leading window indicators and Reveal, Switcher, and Create in one trailing
+capsule. Header and footer chrome remain visible, dim to 35% only while the pointer and keyboard focus
+are both outside, and brighten without moving. Clean Saved is always hidden; other live and actionable
+status stays beside the title.
 
-The fixed footer shows the canonical character count and a formatting toggle. It remains present in the
-switcher, where the toggle is hidden. The active switcher row shows Current and the live character count;
-other rows show relative modification time and file size.
+The fixed footer shows the canonical character count and a formatting toggle. Expanded formatting is a
+persisted per-channel presentation choice and uses a grouped pill plus a separate close circle. The
+floating switcher keeps the editor mounted beneath it and leaves either footer state visible but
+disabled. Its active row shows a blue Current marker and live character count; other rows show relative
+modification time and file size.
 
-During one open-note session the panel grows with content but never shrinks after deletions or
-projection changes. Switching to a different note or explicitly hiding and reopening Notes fits the
-panel to that document again. Temporarily suspending the editor for Search Notes preserves its current
-height. A document that starts at the minimum height retains its initial editor breathing room, so each
-increase in laid-out content height grows the panel immediately rather than first consuming that space.
+During one open-note session the panel follows laid-out content in both directions. A document that
+starts at the minimum retains its initial editor breathing room, so each increase grows the panel
+immediately and deletion can still return it to the floor. Switching documents starts a new fit session;
+same-document re-show, rename, and temporary Search Notes suspension preserve the current height.
 
 The compact switcher and palette browser share `NotesSearchSession`. An empty query lists metadata-only
 summaries by recency. A nonempty query is split on whitespace, debounced for 120 milliseconds, and

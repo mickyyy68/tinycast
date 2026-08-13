@@ -290,8 +290,10 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   or focuses the same editor, and turning either setting off removes it immediately
 - Show Notes opens the last active note and focuses an already visible window without hiding it
 - Create Note makes one unique Untitled file, including as the first action in an empty channel
-- The centered title opens the switcher; hovering the header reveals Create, Reveal, and hide without
-  shifting the title, while saving, failure, and conflict state remain visible
+- The title remains exactly centered and display-only; leading Hide plus two decorative circles and the
+  trailing Reveal, Switcher, Create capsule remain visible without shifting it
+- Header and footer chrome dim while inactive, brighten on whole-panel hover or keyboard focus, and
+  retain every pointer and accessibility target; note content never dims
 - Command-P focuses switcher search, arrows move selection, Return opens, and Command-N creates
 - Empty switcher search reads the complete recent list; title and body searches rank correctly and a
   superseded query never publishes
@@ -310,10 +312,12 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - An existing `Floating Note.md` appears as an ordinary note without conversion
 - Markdown markers collapse without source-width gaps and return when the caret enters their construct;
   links show labels, task checkboxes toggle, and images remain literal source
-- The footer character count follows canonical source; it remains visible in the switcher while the
-  formatting toggle is hidden
-- Switcher rows show Current plus live character count for the active note and modification time plus
-  file size for other notes
+- The footer character count follows canonical source; the collapsed toggle or expanded toolbar remains
+  visible but disabled beneath the switcher
+- The compact glass switcher floats over an uneditable mounted editor; clicking exposed editor space
+  closes it and focuses the editor
+- Switcher rows show a blue Current marker plus live character count for the active note and modification
+  time plus file size for other notes
 - The compact formatting pill, its grouped menus, keyboard navigation, every formatting action, and
   Command-B/I/K plus Shift-Command-X/7/8/9 update literal source and undo in one step
 - Applying several formatting actions keeps the pill open; its close circle and Escape collapse it,

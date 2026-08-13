@@ -118,6 +118,7 @@ explicit size (20pt regular). Use `rowTitle` (`.body`), `sectionHeader` (`.subhe
 | `noteCode`       | white 0.72     | inline and fenced code                           |
 | `noteLink`       | white 0.80     | Markdown links                                   |
 | `noteQuote`      | white 0.62     | blockquotes                                      |
+| `noteCurrent`    | system blue    | active-note dot in the compact Notes switcher   |
 
 Beyond these, `.secondary`/`.tertiary` foreground styles are fine for SF Symbols (they resolve against
 the forced-dark environment). **Selection always beats hover** when a row is both.
@@ -147,31 +148,35 @@ content is a fixed header, editor or switcher region, and fixed footer. Header a
 footer formatting pill use glass.
 
 `NotesWindowController` owns every frame change. TextKit 2 supplies the laid-out editor height, the
-controller adds the header and footer, clamps to the note minimum and screen-aware maximum, and
-preserves the top edge so existing text never jumps upward. After the cap, the native editor scrolls
-internally. A minimum-height session preserves its initial editor breathing room as content grows, so a
-new laid-out line grows the panel immediately. Frame autosaving restores position only; content
-determines size on every show.
+controller adds the header and footer, and tracks content in both directions between the 320-point
+minimum and the smaller of 840 points or the display height minus two 16-point margins. The top edge
+stays fixed unless a screen margin must win; after the cap, the native editor scrolls internally. A
+minimum-height session preserves its initial editor breathing room, so the first laid-out line grows
+the panel immediately and deletion can shrink it to the floor. Frame autosaving restores position only.
 
-The header centers the active title and keeps fixed side slots so its position never moves. Clean saved
-state is hidden at rest; save progress, failures, and conflicts remain visible, and hovering reveals
-Create, Reveal, and hide controls. Failure and conflict symbols can be clicked to reopen their recovery
-report after a dismissal. The title opens the in-window note switcher, while the empty header gutters
-remain draggable. Escape closes the switcher before hiding, while Command-W and the hide control order
-the panel out. Show Notes only shows or focuses; focus loss leaves the panel visible.
+The header keeps the display-only active title exactly centered. Three leading circles provide Hide plus
+two decorative indicators; one trailing glass capsule contains Reveal, Switcher, and Create. The chrome
+stays visible and fades to `noteInactiveChrome 0.35` only while neither the pointer nor keyboard focus is
+inside the panel. Clean Saved is always hidden; loading, dirty, saving, failure, and conflict status sits
+beside the title without moving it, and actionable failures reopen their recovery report. Empty header
+space remains draggable. Escape closes one layer at a time: switcher, expanded formatting, then Notes.
+Command-W and Hide order the panel out; focus loss leaves it visible.
 
 The editor is one native TextKit 2 surface backed by a literal-source/display projection. Inactive
 Markdown markers occupy no layout width; entering a construct reveals its source without moving the
-panel's top edge. The footer shows the canonical character count and a `textformat` toggle. Expanding it
-replaces those controls with one compact grouped formatting pill; heading, emphasis, and list families
-open small menus above it. Commands restore editor focus without dismissing the pill. The toggle, Escape,
-or an outside click closes it, with the outside click continuing to its original target.
+panel's top edge unless a screen margin requires it. The footer shows the canonical character count and
+a `textformat` toggle. Expanding it replaces those controls with one compact grouped formatting pill and
+a separate circular close control; heading, emphasis, and list families open small menus above it.
+Commands restore editor focus without dismissing the pill. Expansion persists per app channel across
+window hiding and relaunch; the close control or Escape collapses it, while outside clicks do not.
 
-The compact switcher occupies the editor region without changing the frame, while the footer keeps the
-active note's character count and hides only the formatting toggle. Its plain search field and
-keyboard-navigable rows use the shared selection/hover ramp. The active row shows a Current marker and
-live character count; other rows show relative modification time and file size. Rename and Trash remain
-row actions rather than adding another toolbar or window. The separate Search Notes command uses the main palette's
+The compact switcher is a glass floating control over the still-mounted editor and never changes the
+frame. Exposed editor clicks dismiss it; the editor cannot receive edits while it is open. The footer
+remains visible: a collapsed toggle or expanded formatting pill stays discoverable but disabled. Its
+plain search field, Notes label, and keyboard-navigable rows use the shared selection/hover ramp. The
+active row shows a blue Current marker and live character count; other rows show relative modification
+time and file size. Rename and Trash remain row actions rather than adding another toolbar or window.
+The separate Search Notes command uses the main palette's
 Clipboard-style split: a 290-point date-sectioned title list, the shared vertical hairline, and a
 read-only rendered Markdown preview. Typed results drop date headers to preserve relevance order.
 

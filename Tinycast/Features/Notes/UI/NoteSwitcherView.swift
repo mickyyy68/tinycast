@@ -10,6 +10,7 @@ struct NoteSwitcherView: View {
         VStack(spacing: 0) {
             searchField
             Divider().overlay(Theme.Colors.separator)
+            sectionLabel
             results
         }
         .onAppear(perform: focusSearch)
@@ -34,8 +35,6 @@ struct NoteSwitcherView: View {
 
     private var searchField: some View {
         HStack(spacing: Theme.Spacing.md) {
-            SymbolImage(name: "magnifyingglass", size: Theme.Size.noteStatus)
-                .foregroundStyle(Theme.Colors.textSecondary)
             TextField("Search notes…", text: notes.searchQueryBinding)
                 .textFieldStyle(.plain)
                 .focused($searchFocused)
@@ -53,6 +52,16 @@ struct NoteSwitcherView: View {
         }
         .padding(.horizontal, Theme.Spacing.xl)
         .frame(height: Theme.Size.noteHeaderHeight)
+    }
+
+    private var sectionLabel: some View {
+        Text("Notes")
+            .font(Theme.Typography.sectionHeader)
+            .foregroundStyle(Theme.Colors.textSecondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, Theme.Spacing.xl)
+            .padding(.top, Theme.Spacing.xxl)
+            .padding(.bottom, Theme.Spacing.md)
     }
 
     @ViewBuilder
@@ -154,9 +163,6 @@ private struct NoteSwitcherRow: View {
 
     var body: some View {
         HStack(spacing: Theme.Spacing.lg) {
-            SymbolImage(name: "text.page", size: Theme.Size.noteStatus)
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .frame(width: Theme.Size.rowIcon, height: Theme.Size.rowIcon)
             VStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
                 if editing {
                     TextField("Note title", text: $titleDraft)
@@ -211,7 +217,7 @@ private struct NoteSwitcherRow: View {
         if current {
             HStack(spacing: Theme.Spacing.xs) {
                 Circle()
-                    .fill(Theme.Colors.textSecondary)
+                    .fill(Theme.Colors.noteCurrent)
                     .frame(width: Theme.Spacing.xs, height: Theme.Spacing.xs)
                 Text("Current")
                 Text("•")

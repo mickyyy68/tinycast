@@ -2,83 +2,141 @@ import SwiftUI
 
 struct NotesView: View {
     @Environment(NotesCoordinator.self) private var notes
-    @State private var headerHovered = false
+    @State private var panelHovered = false
 
     var body: some View {
         VStack(spacing: 0) {
             header
                 .frame(height: Theme.Size.noteHeaderHeight)
-            if notes.isSwitcherPresented {
-                NoteSwitcherView()
-            } else {
-                NoteEditorView(
-                    input: notes.editorInput,
-                    onSourceChange: notes.updateSource,
-                    onContentHeightChange: notes.updateEditorHeight,
-                    onReady: notes.editorReady,
-                    onOpenLink: notes.openLink)
-            }
+                .opacity(chromeOpacity)
+            editorRegion
             footer
                 .frame(height: Theme.Size.noteFooterHeight, alignment: .bottom)
-                .zIndex(notes.isFormattingExpanded ? 1 : 0)
+                .opacity(chromeOpacity)
+                .zIndex(notes.isFormattingExpanded ? 2 : 0)
         }
-        .animation(.easeOut(duration: 0.12), value: notes.isFormattingExpanded)
+        .animation(.easeOut(duration: Theme.Duration.exit), value: notes.isFormattingExpanded)
+        .animation(.easeOut(duration: Theme.Duration.exit), value: chromeEmphasized)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
         .background(Color.black.opacity(Theme.Colors.panelDimming))
         .background(VisualEffectView())
         .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.note, style: .continuous))
+        .onHover { panelHovered = $0 }
         .onChange(of: notes.noteSummaries) { _, _ in
             notes.synchronizeSearch()
         }
     }
 
+    private var editorRegion: some View {
+        ZStack {
+            NoteEditorView(
+                input: notes.editorInput,
+                onSourceChange: notes.updateSource,
+                onContentHeightChange: notes.updateEditorHeight,
+                onReady: notes.editorReady,
+                onOpenLink: notes.openLink)
+                .allowsHitTesting(!notes.isSwitcherPresented)
+                .accessibilityHidden(notes.isSwitcherPresented)
+
+            if notes.isSwitcherPresented {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture { notes.closeSwitcher() }
+                    .accessibilityHidden(true)
+                NoteSwitcherView()
+                    .frame(width: Theme.Size.noteSwitcherWidth)
+                    .frame(maxHeight: Theme.Size.noteSwitcherMaximumHeight)
+                    .glassEffect(
+                        .regular,
+                        in: RoundedRectangle(
+                            cornerRadius: Theme.Radius.menuPanel,
+                            style: .continuous))
+                    .padding(Theme.Spacing.xl)
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+            }
+        }
+        .animation(.easeOut(duration: Theme.Duration.exit), value: notes.isSwitcherPresented)
+    }
+
     private var header: some View {
         ZStack {
-            HStack(spacing: Theme.Spacing.md) {
-                statusView
-                    .opacity(showsStatus ? 1 : 0)
-                    .allowsHitTesting(status.actionable && showsStatus)
-                Color.clear
-                    .frame(maxWidth: .infinity)
-                    .windowDraggable(
-                        true,
-                        onBegan: {},
-                        onEnded: notes.dragEnded)
-                HStack(spacing: Theme.Spacing.md) {
-                    headerButton(
-                        title: "Create Note",
-                        symbol: "plus",
-                        action: notes.createNote)
-                    headerButton(
-                        title: "Reveal in Finder",
-                        symbol: "folder",
-                        action: notes.revealInFinder)
-                    headerButton(
-                        title: "Hide Notes",
-                        symbol: "xmark",
-                        action: notes.hide)
-                }
-                .opacity(headerHovered ? 1 : 0)
-                .allowsHitTesting(headerHovered)
+            Color.clear
+                .windowDraggable(
+                    true,
+                    onBegan: {},
+                    onEnded: notes.dragEnded)
+
+            HStack {
+                windowIndicators
+                Spacer()
+                trailingActions
             }
-            Button(action: notes.openSwitcher) {
-                HStack(spacing: Theme.Spacing.xs) {
-                    Text(notes.activeTitle)
-                        .font(Theme.Typography.noteTitle)
-                        .lineLimit(1)
-                    Image(systemName: "chevron.down")
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(Theme.Colors.textSecondary)
+            .padding(.horizontal, Theme.Spacing.md)
+
+            Text(notes.activeTitle)
+                .font(Theme.Typography.noteTitle)
+                .lineLimit(1)
+                .overlay(alignment: .trailing) {
+                    statusView
+                        .offset(x: Theme.Size.noteStatus + Theme.Spacing.xs)
                 }
+                .frame(
+                    maxWidth: Theme.Size.noteWidth / 2
+                        - Theme.Size.noteStatus
+                        - Theme.Spacing.xxl)
+                .accessibilityAddTraits(.isHeader)
+        }
+    }
+
+    private var windowIndicators: some View {
+        HStack(spacing: Theme.Spacing.md) {
+            Button(action: notes.hide) {
+                Circle()
+                    .fill(chromeEmphasized ? Theme.Colors.destructive : Theme.Colors.textTertiary)
+                    .frame(
+                        width: Theme.Size.noteWindowIndicator,
+                        height: Theme.Size.noteWindowIndicator)
+                    .frame(
+                        width: Theme.Size.noteHeaderButton,
+                        height: Theme.Size.noteHeaderButton)
+                    .contentShape(Circle())
             }
             .buttonStyle(.plain)
-            .frame(maxWidth: Theme.Size.noteWidth / 2 - Theme.Spacing.xxl * 2)
-            .accessibilityLabel("Choose Note")
+            .help("Hide Notes")
+            .accessibilityLabel("Hide Notes")
+
+            ForEach(0..<2, id: \.self) { _ in
+                Circle()
+                    .fill(Theme.Colors.textTertiary)
+                    .frame(
+                        width: Theme.Size.noteWindowIndicator,
+                        height: Theme.Size.noteWindowIndicator)
+                    .frame(
+                        width: Theme.Size.noteHeaderButton,
+                        height: Theme.Size.noteHeaderButton)
+                    .accessibilityHidden(true)
+            }
         }
-        .padding(.leading, Theme.Spacing.xl)
-        .padding(.trailing, Theme.Spacing.md)
-        .animation(.easeOut(duration: Theme.Duration.exit), value: headerHovered)
-        .onHover { headerHovered = $0 }
+    }
+
+    private var trailingActions: some View {
+        HStack(spacing: Theme.Spacing.xs) {
+            actionButton(
+                title: "Reveal in Finder",
+                symbol: "folder",
+                action: notes.revealInFinder)
+            actionButton(
+                title: "Choose Note",
+                symbol: "rectangle.stack",
+                action: notes.openSwitcher)
+            actionButton(
+                title: "Create Note",
+                symbol: "plus",
+                action: notes.createNote)
+        }
+        .padding(Theme.Spacing.xs)
+        .frosted(in: Capsule())
     }
 
     private var footer: some View {
@@ -95,7 +153,7 @@ struct NotesView: View {
 
                 HStack {
                     Spacer()
-                    headerButton(
+                    circularButton(
                         title: "Hide Format Buttons",
                         symbol: "xmark",
                         enabled: notes.isFormattingInteractive,
@@ -108,7 +166,7 @@ struct NotesView: View {
                     .foregroundStyle(Theme.Colors.textTertiary)
                 HStack {
                     Spacer()
-                    headerButton(
+                    circularButton(
                         title: "Show Format Buttons",
                         symbol: "textformat",
                         enabled: !notes.isSwitcherPresented,
@@ -124,19 +182,29 @@ struct NotesView: View {
         return "\(count.formatted()) \(count == 1 ? "character" : "characters")"
     }
 
+    private var chromeEmphasized: Bool {
+        panelHovered || notes.isWindowKey
+    }
+
+    private var chromeOpacity: CGFloat {
+        chromeEmphasized ? 1 : Theme.Opacity.noteInactiveChrome
+    }
+
     private var showsStatus: Bool {
-        headerHovered || status.actionable || notes.state != .ready || notes.isDirty
+        status.actionable || notes.state != .ready || notes.isDirty
     }
 
     @ViewBuilder
     private var statusView: some View {
-        if status.actionable {
-            Button(action: notes.showCurrentIssue) {
+        if showsStatus {
+            if status.actionable {
+                Button(action: notes.showCurrentIssue) {
+                    statusSymbol
+                }
+                .buttonStyle(.plain)
+            } else {
                 statusSymbol
             }
-            .buttonStyle(.plain)
-        } else {
-            statusSymbol
         }
     }
 
@@ -147,10 +215,27 @@ struct NotesView: View {
             .accessibilityLabel(status.label)
     }
 
-    private func headerButton(
+    private func actionButton(
         title: String,
         symbol: String,
-        enabled: Bool = true,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            SymbolImage(name: symbol, size: Theme.Size.noteStatus)
+                .frame(
+                    width: Theme.Size.noteHeaderButton,
+                    height: Theme.Size.noteHeaderButton)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(title)
+        .accessibilityLabel(title)
+    }
+
+    private func circularButton(
+        title: String,
+        symbol: String,
+        enabled: Bool,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -159,12 +244,12 @@ struct NotesView: View {
                     width: Theme.Size.noteHeaderButton,
                     height: Theme.Size.noteHeaderButton)
                 .contentShape(Circle())
-                .accessibilityLabel(title)
         }
         .buttonStyle(.plain)
         .frosted(in: Circle())
         .disabled(!enabled)
         .help(title)
+        .accessibilityLabel(title)
     }
 
     private var status: NoteStatus {
