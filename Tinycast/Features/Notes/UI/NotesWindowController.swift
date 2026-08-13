@@ -10,7 +10,7 @@ final class NotesWindowController: NSObject {
 
     enum HeightBehavior: Equatable {
         case fitContent
-        case growOnly
+        case trackContent
         case preserve
     }
 
@@ -103,7 +103,7 @@ final class NotesWindowController: NSObject {
         guard height.isFinite, height > 0 else { return }
         editorHeight = height
         guard let panel else { return }
-        position(panel, restoreSavedFrame: false, heightBehavior: .growOnly)
+        position(panel, restoreSavedFrame: false, heightBehavior: .trackContent)
     }
 
     func editorReady(_ textView: NoteTextView) {
@@ -198,17 +198,19 @@ final class NotesWindowController: NSObject {
             ?? NSScreen.underCursor?.visibleFrame
             ?? NSScreen.main?.visibleFrame
         guard let visibleFrame else { return }
+        let constrainedVisibleFrame = NoteWindowLayout.constrainedVisibleFrame(
+            visibleFrame,
+            metrics: Self.metrics)
         let height: CGFloat = switch heightBehavior {
         case .fitContent:
             NoteWindowLayout.panelHeight(
                 editorContentHeight: editorHeight,
                 visibleScreenHeight: visibleFrame.height,
                 metrics: Self.metrics)
-        case .growOnly:
-            NoteWindowLayout.growOnlyPanelHeight(
+        case .trackContent:
+            NoteWindowLayout.contentTrackingPanelHeight(
                 editorContentHeight: editorHeight,
                 editorGrowthPadding: editorGrowthPadding,
-                currentPanelHeight: panel.frame.height,
                 visibleScreenHeight: visibleFrame.height,
                 metrics: Self.metrics)
         case .preserve:
@@ -224,22 +226,21 @@ final class NotesWindowController: NSObject {
                 frame = NoteWindowLayout.resizedFrame(
                     currentFrame: panel.frame,
                     height: height,
-                    visibleFrame: visibleFrame,
+                    visibleFrame: constrainedVisibleFrame,
                     width: Theme.Size.noteWidth)
             case .center:
                 frame = NoteWindowLayout.centeredFrame(
                     currentFrame: panel.frame,
                     height: height,
-                    visibleFrame: visibleFrame,
+                    visibleFrame: constrainedVisibleFrame,
                     width: Theme.Size.noteWidth)
             }
         } else {
-            frame = CGRect(
-                x: visibleFrame.midX - Theme.Size.noteWidth / 2,
-                y: visibleFrame.midY
-                    + visibleFrame.height * Theme.Size.noteCenterLiftFraction - height / 2,
+            frame = NoteWindowLayout.initialFrame(
+                visibleFrame: constrainedVisibleFrame,
+                height: height,
                 width: Theme.Size.noteWidth,
-                height: height)
+                centerLiftFraction: Theme.Size.noteCenterLiftFraction)
         }
         if panel.frame != frame {
             panel.setFrame(frame, display: panel.isVisible, animate: false)
@@ -279,6 +280,6 @@ final class NotesWindowController: NSObject {
         width: Theme.Size.noteWidth,
         minimumHeight: Theme.Size.noteMinimumHeight,
         maximumHeight: Theme.Size.noteMaximumHeight,
-        maximumScreenFraction: Theme.Size.noteMaximumScreenFraction,
+        screenMargin: Theme.Size.noteScreenMargin,
         fixedContentHeight: Theme.Size.noteHeaderHeight + Theme.Size.noteFooterHeight)
 }

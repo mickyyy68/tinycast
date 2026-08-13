@@ -571,8 +571,8 @@ struct NotesTests {
         let metrics = NoteWindowLayout.Metrics(
             width: 520,
             minimumHeight: 320,
-            maximumHeight: 640,
-            maximumScreenFraction: 0.7,
+            maximumHeight: 840,
+            screenMargin: 16,
             fixedContentHeight: 84)
         check(
             "short notes use the minimum height",
@@ -584,9 +584,8 @@ struct NotesTests {
                 editorContentHeight: 300, visibleScreenHeight: 900, metrics: metrics) == 384)
         check(
             "live editing grows from the new minimum height",
-            NoteWindowLayout.growOnlyPanelHeight(
+            NoteWindowLayout.contentTrackingPanelHeight(
                 editorContentHeight: 300,
-                currentPanelHeight: 320,
                 visibleScreenHeight: 900,
                 metrics: metrics) == 384)
         let growthPadding = NoteWindowLayout.editorGrowthPadding(
@@ -596,37 +595,37 @@ struct NotesTests {
         check("minimum-height sessions retain their initial editor breathing room", growthPadding == 204)
         check(
             "a new line grows a minimum-height session immediately",
-            NoteWindowLayout.growOnlyPanelHeight(
+            NoteWindowLayout.contentTrackingPanelHeight(
                 editorContentHeight: 48,
                 editorGrowthPadding: growthPadding,
-                currentPanelHeight: 320,
                 visibleScreenHeight: 900,
                 metrics: metrics) == 336)
         check(
-            "long notes stop at the display fraction",
+            "long notes stop at the screen margins",
             NoteWindowLayout.panelHeight(
-                editorContentHeight: 900, visibleScreenHeight: 800, metrics: metrics) == 560)
+                editorContentHeight: 900, visibleScreenHeight: 800, metrics: metrics) == 768)
         check(
-            "live editing retains an already-expanded panel",
-            NoteWindowLayout.growOnlyPanelHeight(
+            "live editing shrinks after content deletion",
+            NoteWindowLayout.contentTrackingPanelHeight(
                 editorContentHeight: 10,
-                currentPanelHeight: 400,
                 visibleScreenHeight: 900,
-                metrics: metrics) == 400)
+                metrics: metrics) == 320)
         check(
-            "live editing can grow beyond the retained panel height",
-            NoteWindowLayout.growOnlyPanelHeight(
+            "live editing grows with laid-out content",
+            NoteWindowLayout.contentTrackingPanelHeight(
                 editorContentHeight: 450,
-                currentPanelHeight: 400,
                 visibleScreenHeight: 900,
                 metrics: metrics) == 534)
         check(
-            "grow-only sizing still obeys the display fraction",
-            NoteWindowLayout.growOnlyPanelHeight(
+            "content tracking still obeys the screen margins",
+            NoteWindowLayout.contentTrackingPanelHeight(
                 editorContentHeight: 900,
-                currentPanelHeight: 640,
                 visibleScreenHeight: 800,
-                metrics: metrics) == 560)
+                metrics: metrics) == 768)
+        check(
+            "the named maximum caps a tall display",
+            NoteWindowLayout.panelHeight(
+                editorContentHeight: 1_000, visibleScreenHeight: 1_200, metrics: metrics) == 840)
         check(
             "a new sizing session can fit a short note again",
             NoteWindowLayout.panelHeight(
@@ -638,15 +637,39 @@ struct NotesTests {
 
         let current = CGRect(x: 300, y: 300, width: 520, height: 320)
         let visible = CGRect(x: 0, y: 0, width: 1_200, height: 900)
+        let constrained = NoteWindowLayout.constrainedVisibleFrame(visible, metrics: metrics)
+        check("the usable frame keeps the lower screen margin", constrained.minY == 16)
+        check("the usable frame keeps the upper screen margin", constrained.maxY == 884)
         let resized = NoteWindowLayout.resizedFrame(
-            currentFrame: current, height: 400, visibleFrame: visible, width: 520)
+            currentFrame: current, height: 400, visibleFrame: constrained, width: 520)
         check("resizing preserves the top edge", resized.maxY == current.maxY)
         check("resizing grows downward", resized.minY < current.minY)
 
         let centered = NoteWindowLayout.centeredFrame(
-            currentFrame: current, height: 400, visibleFrame: visible, width: 520)
+            currentFrame: current, height: 400, visibleFrame: constrained, width: 520)
         check("centered resizing preserves the vertical center", centered.midY == current.midY)
         check("centered resizing preserves the horizontal center", centered.midX == current.midX)
+
+        let tall = NoteWindowLayout.resizedFrame(
+            currentFrame: CGRect(x: 300, y: 580, width: 520, height: 320),
+            height: 840,
+            visibleFrame: constrained,
+            width: 520)
+        check("a tall panel stays below the upper margin", tall.maxY <= constrained.maxY)
+        check("a tall panel stays above the lower margin", tall.minY >= constrained.minY)
+
+        let shortVisible = CGRect(x: 0, y: 0, width: 1_200, height: 330)
+        let shortConstraint = NoteWindowLayout.constrainedVisibleFrame(
+            shortVisible,
+            metrics: metrics)
+        check("the minimum wins when both margins cannot fit", shortConstraint == shortVisible)
+        let shortFrame = NoteWindowLayout.initialFrame(
+            visibleFrame: shortConstraint,
+            height: 320,
+            width: 520,
+            centerLiftFraction: 0.08)
+        check("the short-screen panel remains vertically visible", shortFrame.minY >= 0)
+        check("the short-screen panel remains below the screen top", shortFrame.maxY <= 330)
     }
 
     private static func testStoreCollectionAndExternalEdits() async throws {

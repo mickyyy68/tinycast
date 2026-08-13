@@ -83,9 +83,10 @@ Always `RoundedRectangle(cornerRadius:, style: .continuous)` — continuous corn
 `settingsSidebar 184` · `settingsRowIcon 20` · `dialogWidth 420` · `dialogIcon 32` · `hudWidth 200` ·
 `hudHeight 100` · `volumeTrackHeight 6` · `volumeKnob 16` · `volumeReadout 38`
 
-Notes adds `noteWidth 520`, `noteMinimumHeight 320`, `noteMaximumHeight 640`,
-`noteMaximumScreenFraction 0.7`, `noteHeaderHeight 44`, `noteFooterHeight 40`,
-`noteEditorInset 16`, `noteHeaderButton 30`, `noteStatus 16`, and `noteFormattingMenuWidth 176`.
+Notes adds `noteWidth 520`, `noteMinimumHeight 320`, `noteMaximumHeight 840`,
+`noteScreenMargin 16`, `noteHeaderHeight 44`, `noteFooterHeight 40`, `noteEditorInset 16`,
+`noteHeaderButton 30`, `noteStatus 16`, `noteWindowIndicator 14`, `noteSwitcherWidth 420`,
+`noteSwitcherMaximumHeight 360`, and `noteFormattingMenuWidth 176`.
 `noteCenterLiftFraction 0.08` is its initial optical lift.
 
 `keyCap` sizes the palette's keycap chips; `recorderKeyCap` (both size and radius) is the intentionally-smaller Settings shortcut-recorder chip.

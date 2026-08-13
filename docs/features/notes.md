@@ -25,9 +25,9 @@ direct: the files in its Notes folder are the complete library.
   `NotesStore`, search, conflicts, or disk.
 - **Off means no entry point or Notes work.** The feature is off by default; its shortcuts no-op, its
   commands are absent, and enabling alone does not enumerate or create the Notes directory.
-- **The top edge is the resize anchor.** `NotesWindowController` alone owns the frame while the active
-  document grows downward, stays expanded when content is deleted, and scrolls after its screen-aware
-  maximum.
+- **The top edge is the preferred resize anchor.** `NotesWindowController` alone owns the frame while
+  the active document tracks content in both directions; 16-point screen margins take precedence, and
+  the editor scrolls after the 840-point or screen-height cap.
 
 ## Storage and identity
 

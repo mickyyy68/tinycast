@@ -321,12 +321,12 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   does not terminate; repeat after a clean external reload
 - Marked-text input, emoji, combining marks, Copy, Cut, Paste, Select All, and Command-click links keep
   exact Markdown and ordinary clicks only reveal source
-- The panel starts no shorter than 320 points, grows downward without moving its header, stops at its
-  screen-aware cap, then scrolls
+- The panel starts no shorter than 320 points, tracks content downward without moving its header when
+  margins permit, stops at 840 points or 16 points from both screen edges, then scrolls
 - Adding a laid-out line grows even a minimum-height panel immediately instead of consuming its initial
   editor breathing room
-- After a tall note expands the panel, deleting most of its content keeps the workspace tall; typing
-  enough content grows it again, while switching notes or hiding and reopening fits the new session
+- After a tall note expands the panel, deleting content shrinks it toward the 320-point floor and typing
+  grows it again; same-document suspension and restoration preserve the current height
 - Opening Search Notes over a tall editor and cancelling restores the editor at the same height
 - Leaving Notes Search through Back, bare Backspace, or Tab resets the sizing session for the next open
 - Clicking another app leaves the panel visible; Escape, Command-W, and close hide it

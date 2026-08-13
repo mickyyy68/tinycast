@@ -6,7 +6,7 @@ enum NoteWindowLayout {
         let width: CGFloat
         let minimumHeight: CGFloat
         let maximumHeight: CGFloat
-        let maximumScreenFraction: CGFloat
+        let screenMargin: CGFloat
         let fixedContentHeight: CGFloat
     }
 
@@ -22,10 +22,9 @@ enum NoteWindowLayout {
             metrics: metrics)
     }
 
-    static func growOnlyPanelHeight(
+    static func contentTrackingPanelHeight(
         editorContentHeight: CGFloat,
         editorGrowthPadding: CGFloat = 0,
-        currentPanelHeight: CGFloat,
         visibleScreenHeight: CGFloat,
         metrics: Metrics
     ) -> CGFloat {
@@ -33,7 +32,7 @@ enum NoteWindowLayout {
             + max(0, editorContentHeight)
             + max(0, editorGrowthPadding)
         return clampedPanelHeight(
-            max(currentPanelHeight, desired),
+            desired,
             visibleScreenHeight: visibleScreenHeight,
             metrics: metrics)
     }
@@ -89,6 +88,29 @@ enum NoteWindowLayout {
             to: visibleFrame)
     }
 
+    static func initialFrame(
+        visibleFrame: CGRect,
+        height: CGFloat,
+        width: CGFloat,
+        centerLiftFraction: CGFloat
+    ) -> CGRect {
+        constrainedFrame(
+            CGRect(
+                x: visibleFrame.midX - width / 2,
+                y: visibleFrame.midY + visibleFrame.height * centerLiftFraction - height / 2,
+                width: width,
+                height: height),
+            to: visibleFrame)
+    }
+
+    static func constrainedVisibleFrame(_ visibleFrame: CGRect, metrics: Metrics) -> CGRect {
+        let margin = max(0, metrics.screenMargin)
+        guard visibleFrame.height >= metrics.minimumHeight + margin * 2 else {
+            return visibleFrame
+        }
+        return visibleFrame.insetBy(dx: 0, dy: margin)
+    }
+
     private static func constrainedFrame(_ proposedFrame: CGRect, to visibleFrame: CGRect) -> CGRect {
         var frame = proposedFrame
         if frame.maxX > visibleFrame.maxX { frame.origin.x = visibleFrame.maxX - frame.width }
@@ -105,7 +127,7 @@ enum NoteWindowLayout {
     ) -> CGFloat {
         let maximum = min(
             metrics.maximumHeight,
-            visibleScreenHeight * metrics.maximumScreenFraction)
+            max(0, visibleScreenHeight - metrics.screenMargin * 2))
         return min(
             max(proposedHeight, metrics.minimumHeight),
             max(metrics.minimumHeight, maximum))

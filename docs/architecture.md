@@ -111,9 +111,10 @@ the user enables direct menu-bar access, because a `MenuBarExtra` cannot provide
   unreliable for accessory apps, so this is deliberate. Their lifecycles are independent of the
   palette's in both directions.
 - **Notes** — a persistent, borderless `NotesPanel` managed by `NotesWindowController`. It keeps its
-  top edge fixed while its mapped TextKit 2 editor grows downward, switches among local Markdown files,
-  and remains visible on focus loss. Canonical source and display projection remain separate so
-  collapsed syntax never changes the local Markdown files.
+  top edge fixed when screen margins permit while its mapped TextKit 2 editor tracks content height in
+  both directions, switches among local Markdown files, and remains visible on focus loss. Canonical
+  source and display projection remain separate so collapsed syntax never changes the local Markdown
+  files.
   See [features/notes.md](features/notes.md).
 - **The main menu** — shaped by `TinycastApp`'s `.commands`, which rebinds ⌘Q to Close Settings. It is
   only ever on screen while a titled window is open, so it is Settings' menu bar. It must stay
