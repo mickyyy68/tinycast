@@ -8,19 +8,16 @@ struct NoteFormattingMenu: View {
     @State private var expandedGroup: FormatGroup?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-            if let expandedGroup {
-                groupMenu(expandedGroup)
-                    .frame(
-                        maxWidth: .infinity,
-                        alignment: expandedGroup == .list ? .trailing : .leading)
-                    .transition(
-                        .opacity.combined(
-                            with: .scale(scale: 0.96, anchor: .bottomLeading)))
+        toolbar
+            .overlay(
+                alignment: expandedGroup == .list ? .topTrailing : .topLeading
+            ) {
+                if let expandedGroup {
+                    groupMenu(expandedGroup)
+                        .fixedSize()
+                        .offset(y: -expandedGroup.menuHeight - Theme.Spacing.xs)
+                }
             }
-            toolbar
-        }
-        .animation(.easeOut(duration: Theme.Duration.exit), value: expandedGroup)
         .onAppear {
             guard isInteractive else { return }
             Task { @MainActor in
@@ -30,8 +27,10 @@ struct NoteFormattingMenu: View {
         }
         .onChange(of: isInteractive) { _, interactive in
             guard interactive else {
-                expandedGroup = nil
-                focused = nil
+                updatePresentation {
+                    expandedGroup = nil
+                    focused = nil
+                }
                 return
             }
             Task { @MainActor in
@@ -71,8 +70,10 @@ struct NoteFormattingMenu: View {
 
     private func groupButton(_ group: FormatGroup) -> some View {
         Button {
-            expandedGroup = expandedGroup == group ? nil : group
-            focused = .command(group.representative)
+            updatePresentation {
+                expandedGroup = expandedGroup == group ? nil : group
+                focused = .command(group.representative)
+            }
         } label: {
             HStack(spacing: Theme.Spacing.xxs) {
                 if let symbol = group.symbol {
@@ -90,8 +91,8 @@ struct NoteFormattingMenu: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .background(buttonBackground(group.isSelected(in: selectedCommands)))
-        .overlay(focusBorder(.command(group.representative)))
+        .background(toolbarButtonBackground(group.isSelected(in: selectedCommands)))
+        .overlay(toolbarFocusBorder(.command(group.representative)))
         .focused($focused, equals: .command(group.representative))
         .help(group.title)
         .accessibilityLabel(group.title)
@@ -100,8 +101,10 @@ struct NoteFormattingMenu: View {
 
     private func commandButton(_ item: Item) -> some View {
         Button {
-            expandedGroup = nil
-            focused = .command(item.command)
+            updatePresentation {
+                expandedGroup = nil
+                focused = .command(item.command)
+            }
             onSelect(item.command)
         } label: {
             SymbolImage(name: item.symbol ?? "textformat", size: Theme.Size.noteStatus)
@@ -111,8 +114,8 @@ struct NoteFormattingMenu: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .background(buttonBackground(selectedCommands.contains(item.command)))
-        .overlay(focusBorder(.command(item.command)))
+        .background(toolbarButtonBackground(selectedCommands.contains(item.command)))
+        .overlay(toolbarFocusBorder(.command(item.command)))
         .focused($focused, equals: .command(item.command))
         .help(item.label)
         .accessibilityLabel(item.label)
@@ -123,8 +126,10 @@ struct NoteFormattingMenu: View {
         VStack(spacing: 0) {
             ForEach(group.items) { item in
                 Button {
-                    focused = .command(item.command)
-                    expandedGroup = nil
+                    updatePresentation {
+                        focused = .command(item.command)
+                        expandedGroup = nil
+                    }
                     onSelect(item.command)
                 } label: {
                     HStack(spacing: Theme.Spacing.sm) {
@@ -146,8 +151,8 @@ struct NoteFormattingMenu: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .background(buttonBackground(selectedCommands.contains(item.command)))
-                .overlay(focusBorder(.command(item.command)))
+                .background(menuRowBackground(selectedCommands.contains(item.command)))
+                .overlay(menuRowFocusBorder(.command(item.command)))
                 .focused($focused, equals: .command(item.command))
                 .accessibilityLabel(item.label)
                 .accessibilityAddTraits(
@@ -161,14 +166,30 @@ struct NoteFormattingMenu: View {
             in: RoundedRectangle(cornerRadius: Theme.Radius.menuPanel, style: .continuous))
     }
 
-    private func buttonBackground(_ selected: Bool) -> some View {
+    private func toolbarButtonBackground(_ selected: Bool) -> some View {
+        Capsule()
+            .fill(selected ? Theme.Colors.selection : .clear)
+    }
+
+    private func toolbarFocusBorder(_ target: FocusTarget) -> some View {
+        Capsule()
+            .stroke(focused == target ? Theme.Colors.border : .clear, lineWidth: 1)
+    }
+
+    private func menuRowBackground(_ selected: Bool) -> some View {
         RoundedRectangle(cornerRadius: Theme.Radius.menu, style: .continuous)
             .fill(selected ? Theme.Colors.selection : .clear)
     }
 
-    private func focusBorder(_ target: FocusTarget) -> some View {
+    private func menuRowFocusBorder(_ target: FocusTarget) -> some View {
         RoundedRectangle(cornerRadius: Theme.Radius.menu, style: .continuous)
             .stroke(focused == target ? Theme.Colors.border : .clear, lineWidth: 1)
+    }
+
+    private func updatePresentation(_ update: () -> Void) {
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        withTransaction(transaction, update)
     }
 
     private var initialFocus: FocusTarget {
@@ -214,10 +235,12 @@ struct NoteFormattingMenu: View {
             guard case .command(let command) = normalized,
                 let group = FormatGroup.allCases.first(where: { $0.representative == command })
             else { return }
-            expandedGroup = group
-            self.focused = .command(
-                group.items.first(where: { selectedCommands.contains($0.command) })?.command
-                    ?? group.items[0].command)
+            updatePresentation {
+                expandedGroup = group
+                self.focused = .command(
+                    group.items.first(where: { selectedCommands.contains($0.command) })?.command
+                        ?? group.items[0].command)
+            }
         case .down:
             break
         @unknown default:
@@ -235,14 +258,18 @@ struct NoteFormattingMenu: View {
             focused = .command(group.items[max(0, index - 1)].command)
         case .down:
             if index == group.items.count - 1 {
-                expandedGroup = nil
-                focused = .command(group.representative)
+                updatePresentation {
+                    expandedGroup = nil
+                    focused = .command(group.representative)
+                }
             } else {
                 focused = .command(group.items[index + 1].command)
             }
         case .left, .right:
-            expandedGroup = nil
-            focused = .command(group.representative)
+            updatePresentation {
+                expandedGroup = nil
+                focused = .command(group.representative)
+            }
         @unknown default:
             break
         }
@@ -319,6 +346,11 @@ private enum FormatGroup: CaseIterable {
                 Item(.taskList, "Tasks", "checklist")
             ]
         }
+    }
+
+    var menuHeight: CGFloat {
+        CGFloat(items.count) * (Theme.Size.noteStatus + Theme.Spacing.sm * 2)
+            + Theme.Spacing.xs * 2
     }
 
     func isSelected(in commands: Set<NoteMarkdownCommand>) -> Bool {

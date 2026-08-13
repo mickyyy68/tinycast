@@ -91,13 +91,14 @@ without delaying the order-out.
 
 The 520-point editor surface retains a 320-point minimum and grows to the smaller of 840 points or the
 display height minus two 16-point margins. Its fixed header keeps the display-only active title exactly
-centered, with Hide in three leading window indicators and Reveal, Switcher, and Create in one trailing
-capsule. Header and footer chrome remain visible, dim to 35% only while the pointer and keyboard focus
-are both outside, and brighten without moving. Clean Saved is always hidden; other live and actionable
-status stays beside the title.
+centered, with one leading Hide circle and Reveal, Switcher, and Create in one trailing capsule. Header
+and footer chrome use a 12-point horizontal gutter, remain visible, dim to 35% only while the pointer and
+keyboard focus are both outside, and brighten without moving. Clean Saved is always hidden; other live
+and actionable status stays beside the title.
 
-The fixed footer shows the canonical character count and a formatting toggle. Expanded formatting is a
-persisted per-channel presentation choice and uses a grouped pill plus a separate close circle. The
+The fixed 54-point footer centers the canonical character count, formatting controls, and expanded pill
+on one vertical axis with 12 points around circular controls and 8 around the pill. Expanded formatting
+is a persisted per-channel presentation choice and uses a grouped pill plus a separate close circle. The
 floating switcher keeps the editor mounted beneath it and leaves either footer state visible but
 disabled. Its active row shows a blue Current marker and live character count; other rows show relative
 modification time and file size.
@@ -160,8 +161,9 @@ emphasis, and list controls are grouped and open small menus above the pill; lin
 code, quote, and horizontal rule remain direct actions. Applying a command keeps the pill open and
 restores editor focus. The separate close circle or Escape collapses it; outside clicks do not. Opening
 the switcher closes any family menu and disables the mounted pill without changing its persisted
-expanded choice. Command-B, Command-I, Command-K, Shift-Command-X, and Shift-Command-7/8/9 use the same
-source-edit planner.
+expanded choice. Family menus appear and close without animation, and selected fills follow the
+formatting capsule's rounded geometry. Command-B, Command-I, Command-K, Shift-Command-X, and
+Shift-Command-7/8/9 use the same source-edit planner.
 
 Return continues bullets, numbered items, and tasks, with new tasks unchecked. Return on an empty item
 or Backspace at its content boundary removes the list marker; Tab and Shift-Tab nest and outdent list

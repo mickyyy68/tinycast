@@ -290,8 +290,10 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   or focuses the same editor, and turning either setting off removes it immediately
 - Show Notes opens the last active note and focuses an already visible window without hiding it
 - Create Note makes one unique Untitled file, including as the first action in an empty channel
-- The title remains exactly centered and display-only; leading Hide plus two decorative circles and the
-  trailing Reveal, Switcher, Create capsule remain visible without shifting it
+- The title remains exactly centered and display-only; one leading Hide circle and the trailing Reveal,
+  Switcher, Create capsule remain visible without shifting it
+- Header and footer control bounds use 12-point horizontal gutters; the centered footer count, toggle,
+  expanded pill, and close control share one vertical center with 12/8-point breathing room
 - Header and footer chrome dim while inactive, brighten on whole-panel hover or keyboard focus, and
   retain every pointer and accessibility target; note content never dims
 - Command-P focuses switcher search, arrows move selection, Return opens, and Command-N creates
@@ -320,8 +322,10 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   time plus file size for other notes
 - The compact formatting pill, its grouped menus, keyboard navigation, every formatting action, and
   Command-B/I/K plus Shift-Command-X/7/8/9 update literal source and undo in one step
+- Selected formatting fills remain inside the capsule; family menus appear and close without animation
 - Applying several formatting actions keeps the pill open; its close circle and Escape collapse it,
   while an outside click does not
+- Opening each formatting family menu leaves the toolbar center and panel frame stationary
 - Formatting expansion survives hide/show and a fresh Dev relaunch; opening the switcher closes an open
   family menu without changing that preference
 - Return continues bullets, numbers, and tasks; an empty item exits, and Tab/Shift-Tab nest and outdent

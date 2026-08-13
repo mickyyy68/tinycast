@@ -68,11 +68,11 @@ struct NotesView: View {
                     onEnded: notes.dragEnded)
 
             HStack {
-                windowIndicators
+                hideControl
                 Spacer()
                 trailingActions
             }
-            .padding(.horizontal, Theme.Spacing.md)
+            .padding(.horizontal, Theme.Spacing.xl)
 
             Text(notes.activeTitle)
                 .font(Theme.Typography.noteTitle)
@@ -89,35 +89,21 @@ struct NotesView: View {
         }
     }
 
-    private var windowIndicators: some View {
-        HStack(spacing: Theme.Spacing.md) {
-            Button(action: notes.hide) {
-                Circle()
-                    .fill(chromeEmphasized ? Theme.Colors.destructive : Theme.Colors.textTertiary)
-                    .frame(
-                        width: Theme.Size.noteWindowIndicator,
-                        height: Theme.Size.noteWindowIndicator)
-                    .frame(
-                        width: Theme.Size.noteHeaderButton,
-                        height: Theme.Size.noteHeaderButton)
-                    .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .help("Hide Notes")
-            .accessibilityLabel("Hide Notes")
-
-            ForEach(0..<2, id: \.self) { _ in
-                Circle()
-                    .fill(Theme.Colors.textTertiary)
-                    .frame(
-                        width: Theme.Size.noteWindowIndicator,
-                        height: Theme.Size.noteWindowIndicator)
-                    .frame(
-                        width: Theme.Size.noteHeaderButton,
-                        height: Theme.Size.noteHeaderButton)
-                    .accessibilityHidden(true)
-            }
+    private var hideControl: some View {
+        Button(action: notes.hide) {
+            Circle()
+                .fill(chromeEmphasized ? Theme.Colors.destructive : Theme.Colors.textTertiary)
+                .frame(
+                    width: Theme.Size.noteCloseIndicator,
+                    height: Theme.Size.noteCloseIndicator)
+                .frame(
+                    width: Theme.Size.noteHeaderButton,
+                    height: Theme.Size.noteHeaderButton)
+                .contentShape(Circle())
         }
+        .buttonStyle(.plain)
+        .help("Hide Notes")
+        .accessibilityLabel("Hide Notes")
     }
 
     private var trailingActions: some View {
@@ -141,6 +127,9 @@ struct NotesView: View {
 
     private var footer: some View {
         ZStack(alignment: .bottom) {
+            Color.clear
+                .accessibilityHidden(true)
+
             if notes.isFormattingExpanded {
                 NoteFormattingMenu(
                     selectedCommands: notes.activeFormattingCommands,
@@ -150,6 +139,7 @@ struct NotesView: View {
                     .transition(
                         .opacity.combined(
                             with: .scale(scale: 0.96, anchor: .bottom)))
+                    .padding(.bottom, Theme.Spacing.md)
 
                 HStack {
                     Spacer()
@@ -159,11 +149,13 @@ struct NotesView: View {
                         enabled: notes.isFormattingInteractive,
                         action: notes.dismissFormatting)
                 }
-                .padding(.horizontal, Theme.Spacing.md)
+                .padding(.horizontal, Theme.Spacing.xl)
+                .padding(.bottom, Theme.Spacing.xl)
             } else {
                 Text(characterCountLabel)
                     .font(.caption)
                     .foregroundStyle(Theme.Colors.textTertiary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 HStack {
                     Spacer()
                     circularButton(
@@ -172,7 +164,8 @@ struct NotesView: View {
                         enabled: !notes.isSwitcherPresented,
                         action: notes.toggleFormatting)
                 }
-                .padding(.horizontal, Theme.Spacing.md)
+                .padding(.horizontal, Theme.Spacing.xl)
+                .padding(.bottom, Theme.Spacing.xl)
             }
         }
     }

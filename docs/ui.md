@@ -84,8 +84,8 @@ Always `RoundedRectangle(cornerRadius:, style: .continuous)` — continuous corn
 `hudHeight 100` · `volumeTrackHeight 6` · `volumeKnob 16` · `volumeReadout 38`
 
 Notes adds `noteWidth 520`, `noteMinimumHeight 320`, `noteMaximumHeight 840`,
-`noteScreenMargin 16`, `noteHeaderHeight 44`, `noteFooterHeight 40`, `noteEditorInset 16`,
-`noteHeaderButton 30`, `noteStatus 16`, `noteWindowIndicator 14`, `noteSwitcherWidth 420`,
+`noteScreenMargin 16`, `noteHeaderHeight 44`, `noteFooterHeight 54`, `noteEditorInset 16`,
+`noteHeaderButton 30`, `noteStatus 16`, `noteCloseIndicator 14`, `noteSwitcherWidth 420`,
 `noteSwitcherMaximumHeight 360`, and `noteFormattingMenuWidth 176`.
 `noteCenterLiftFraction 0.08` is its initial optical lift.
 
@@ -154,9 +154,10 @@ stays fixed unless a screen margin must win; after the cap, the native editor sc
 minimum-height session preserves its initial editor breathing room, so the first laid-out line grows
 the panel immediately and deletion can shrink it to the floor. Frame autosaving restores position only.
 
-The header keeps the display-only active title exactly centered. Three leading circles provide Hide plus
-two decorative indicators; one trailing glass capsule contains Reveal, Switcher, and Create. The chrome
-stays visible and fades to `noteInactiveChrome 0.35` only while neither the pointer nor keyboard focus is
+The header keeps the display-only active title exactly centered. One leading red circle provides Hide;
+one trailing glass capsule contains Reveal, Switcher, and Create. Header and footer chrome use a
+12-point horizontal gutter, while editor text keeps its independent 16-point inset. The chrome stays
+visible and fades to `noteInactiveChrome 0.35` only while neither the pointer nor keyboard focus is
 inside the panel. Clean Saved is always hidden; loading, dirty, saving, failure, and conflict status sits
 beside the title without moving it, and actionable failures reopen their recovery report. Empty header
 space remains draggable. Escape closes one layer at a time: switcher, expanded formatting, then Notes.
@@ -164,11 +165,14 @@ Command-W and Hide order the panel out; focus loss leaves it visible.
 
 The editor is one native TextKit 2 surface backed by a literal-source/display projection. Inactive
 Markdown markers occupy no layout width; entering a construct reveals its source without moving the
-panel's top edge unless a screen margin requires it. The footer shows the canonical character count and
-a `textformat` toggle. Expanding it replaces those controls with one compact grouped formatting pill and
-a separate circular close control; heading, emphasis, and list families open small menus above it.
-Commands restore editor focus without dismissing the pill. Expansion persists per app channel across
-window hiding and relaunch; the close control or Escape collapses it, while outside clicks do not.
+panel's top edge unless a screen margin requires it. The 54-point footer centers the canonical character
+count and its controls 27 points above the panel edge. Its 30-point circles have 12 points above and
+below; the 38-point expanded formatting pill has 8 and shares the same center with its separate close
+control. Heading, emphasis, and list families open upward without moving the toolbar. Commands restore
+editor focus without dismissing the pill. Family menus appear and close immediately without a scale or
+opacity transition, and selected fills use the capsule's own rounded geometry. Expansion persists per
+app channel across window hiding and relaunch; the close control or Escape collapses it, while outside
+clicks do not.
 
 The compact switcher is a glass floating control over the still-mounted editor and never changes the
 frame. Exposed editor clicks dismiss it; the editor cannot receive edits while it is open. The footer
