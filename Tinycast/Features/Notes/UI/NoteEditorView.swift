@@ -4,7 +4,7 @@ import SwiftUI
 struct NoteEditorView: NSViewRepresentable {
     let input: NoteEditorInput
     let onSourceChange: (String) -> Void
-    let onContentHeightChange: (CGFloat) -> Void
+    let onContentHeightChange: (NoteEditorInput, CGFloat) -> Void
     let onReady: (NoteTextView) -> Void
     let onOpenLink: (String) -> Void
 
@@ -30,10 +30,7 @@ struct NoteEditorView: NSViewRepresentable {
         context.coordinator.install(input, resetUndo: false)
         context.coordinator.reportHeight()
         onReady(textView)
-        Task { @MainActor [weak coordinator = context.coordinator] in
-            await Task.yield()
-            coordinator?.reportHeight()
-        }
+        context.coordinator.scheduleHeightReport(for: input)
         return scrollView
     }
 
@@ -119,7 +116,7 @@ struct NoteEditorView: NSViewRepresentable {
             input = next
             guard authoritative else { return }
             install(next, resetUndo: true)
-            reportHeight()
+            scheduleHeightReport(for: next)
         }
 
         func textView(
@@ -171,7 +168,18 @@ struct NoteEditorView: NSViewRepresentable {
             if textView.frame.height != height {
                 textView.setFrameSize(NSSize(width: textView.frame.width, height: height))
             }
-            parent.onContentHeightChange(height)
+            parent.onContentHeightChange(input, height)
+        }
+
+        func scheduleHeightReport(for expectedInput: NoteEditorInput) {
+            Task { @MainActor [weak self] in
+                await Task.yield()
+                guard let self, input.id == expectedInput.id,
+                    input.epoch == expectedInput.epoch
+                else { return }
+                textView?.layoutSubtreeIfNeeded()
+                reportHeight()
+            }
         }
 
         func noteTextViewCopy(_ textView: NoteTextView) {

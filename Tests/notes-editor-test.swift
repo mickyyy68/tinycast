@@ -6,12 +6,13 @@ import Foundation
 struct NotesEditorTests {
     private static var failures = 0
 
-    static func main() {
+    static func main() async {
         _ = NSApplication.shared
         testProjectedEditingAndUndoIsolation()
         testCanonicalCopyAndCut()
         testCaretAnchoringAcrossProjectionChanges()
         testNewlineReportsGrowingContentHeight()
+        await testSwitchingReportsUpdatedContentHeight()
         testBottomEditingPreservesViewport()
         testTaskOverlayLifetime()
         print(failures == 0 ? "Notes editor tests passed" : "\(failures) tests failed")
@@ -27,7 +28,7 @@ struct NotesEditorTests {
                 source: "**bold** [link](https://example.com)",
                 epoch: 1),
             onSourceChange: { changes.append($0) },
-            onContentHeightChange: { _ in },
+            onContentHeightChange: { _, _ in },
             onReady: { _ in },
             onOpenLink: { _ in })
         let coordinator = NoteEditorView.Coordinator(parent: view)
@@ -298,7 +299,7 @@ struct NotesEditorTests {
         let view = NoteEditorView(
             input: input,
             onSourceChange: { _ in },
-            onContentHeightChange: { _ in },
+            onContentHeightChange: { _, _ in },
             onReady: { _ in },
             onOpenLink: { _ in })
         let coordinator = NoteEditorView.Coordinator(parent: view)
@@ -347,7 +348,7 @@ struct NotesEditorTests {
         let view = NoteEditorView(
             input: input,
             onSourceChange: { _ in },
-            onContentHeightChange: { _ in
+            onContentHeightChange: { _, _ in
                 guard let panel else { return }
                 panel.setFrame(panel.frame, display: true, animate: false)
             },
@@ -406,7 +407,7 @@ struct NotesEditorTests {
         let view = NoteEditorView(
             input: input,
             onSourceChange: { _ in },
-            onContentHeightChange: { heights.append($0) },
+            onContentHeightChange: { _, height in heights.append(height) },
             onReady: { _ in },
             onOpenLink: { _ in })
         let coordinator = NoteEditorView.Coordinator(parent: view)
@@ -433,6 +434,74 @@ struct NotesEditorTests {
         check("a newline reports a larger intrinsic editor height", (heights.last ?? 0) > initialHeight)
     }
 
+    private static func testSwitchingReportsUpdatedContentHeight() async {
+        var heights: [CGFloat] = []
+        let (heightStream, heightContinuation) = AsyncStream.makeStream(of: CGFloat.self)
+        let recordHeight: (NoteEditorInput, CGFloat) -> Void = { _, height in
+            heights.append(height)
+            heightContinuation.yield(height)
+        }
+        let short = NoteEditorInput(
+            id: NoteID(rawValue: "Short.md"),
+            source: "Short",
+            epoch: 1)
+        let view = NoteEditorView(
+            input: short,
+            onSourceChange: { _ in },
+            onContentHeightChange: recordHeight,
+            onReady: { _ in },
+            onOpenLink: { _ in })
+        let coordinator = NoteEditorView.Coordinator(parent: view)
+        let textView = NoteTextView(usingTextLayoutManager: true)
+        NoteTextStyler.configure(textView, editable: true)
+        textView.setFrameSize(NSSize(width: 520, height: 236))
+        let scrollView = NSScrollView(frame: NSRect(x: 0, y: 0, width: 520, height: 236))
+        scrollView.documentView = textView
+        coordinator.textView = textView
+        coordinator.install(short, resetUndo: false)
+        var heightIterator = heightStream.makeAsyncIterator()
+        coordinator.reportHeight()
+        let shortHeight = await heightIterator.next() ?? 0
+
+        let long = NoteEditorInput(
+            id: NoteID(rawValue: "Long.md"),
+            source: (0..<40).map { "Line \($0)" }.joined(separator: "\n"),
+            epoch: 2)
+        coordinator.parent = NoteEditorView(
+            input: long,
+            onSourceChange: { _ in },
+            onContentHeightChange: recordHeight,
+            onReady: { _ in },
+            onOpenLink: { _ in })
+        let reportCount = heights.count
+        coordinator.update(long)
+        check(
+            "a note switch waits for TextKit to lay out the replacement document",
+            heights.count == reportCount)
+        let longHeight = await heightIterator.next() ?? 0
+
+        check(
+            "switching from a short note reports the long note's laid-out height",
+            longHeight > shortHeight)
+
+        let shortAgain = NoteEditorInput(
+            id: NoteID(rawValue: "Short Again.md"),
+            source: "Short again",
+            epoch: 3)
+        coordinator.parent = NoteEditorView(
+            input: shortAgain,
+            onSourceChange: { _ in },
+            onContentHeightChange: recordHeight,
+            onReady: { _ in },
+            onOpenLink: { _ in })
+        coordinator.update(shortAgain)
+        let shortAgainHeight = await heightIterator.next() ?? 0
+        heightContinuation.finish()
+        check(
+            "switching back to a short note reports its smaller laid-out height",
+            shortAgainHeight < longHeight)
+    }
+
     private static func testCanonicalCopyAndCut() {
         let source = "# Heading\n\n**bold**"
         var changes: [String] = []
@@ -443,7 +512,7 @@ struct NotesEditorTests {
         let view = NoteEditorView(
             input: input,
             onSourceChange: { changes.append($0) },
-            onContentHeightChange: { _ in },
+            onContentHeightChange: { _, _ in },
             onReady: { _ in },
             onOpenLink: { _ in })
         let coordinator = NoteEditorView.Coordinator(parent: view)

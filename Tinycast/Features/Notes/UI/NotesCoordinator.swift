@@ -362,8 +362,11 @@ final class NotesCoordinator {
         }
     }
 
-    func updateEditorHeight(_ height: CGFloat) {
-        guard !isSwitcherPresented else { return }
+    func updateEditorHeight(_ input: NoteEditorInput, _ height: CGFloat) {
+        let current = editorInput
+        guard !isSwitcherPresented, input.id == current.id, input.epoch == current.epoch else {
+            return
+        }
         windowController.updateEditorHeight(height)
     }
 

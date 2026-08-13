@@ -152,7 +152,9 @@ controller adds the header and footer, and tracks content in both directions bet
 minimum and the smaller of 840 points or the display height minus two 16-point margins. The top edge
 stays fixed unless a screen margin must win; after the cap, the native editor scrolls internally. A
 minimum-height session preserves its initial editor breathing room, so the first laid-out line grows
-the panel immediately and deletion can shrink it to the floor. Frame autosaving restores position only.
+the panel immediately and deletion can shrink it to the floor. Replacement documents report after
+TextKit layout, and only the active editor epoch may change the frame. Frame autosaving restores
+position only.
 
 The header keeps the display-only active title exactly centered. One leading red circle provides Hide;
 one trailing glass capsule contains Reveal, Switcher, and Create. Header and footer chrome use a

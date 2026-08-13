@@ -297,6 +297,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Header and footer chrome dim while inactive, brighten on whole-panel hover or keyboard focus, and
   retain every pointer and accessibility target; note content never dims
 - Command-P focuses switcher search, arrows move selection, Return opens, and Command-N creates
+- Switching short → long → short resizes to each document's laid-out height without retaining or
+  publishing the previous document's measurement
 - Empty switcher search reads the complete recent list; title and body searches rank correctly and a
   superseded query never publishes
 - Search Notes opens the 750-point palette with date-sectioned titles and a rendered Markdown preview;

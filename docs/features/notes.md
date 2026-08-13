@@ -154,7 +154,8 @@ decorations rather than repeated text glyphs.
 edit maps through ordered identity, elision, and replacement segments before one canonical transaction
 updates the store. Copy and Cut use source ranges. The editor epoch changes on note switches and clean
 external reloads, clearing its custom native undo manager before a new source is installed; ordinary
-view updates preserve undo. Marked-text composition freezes projection until commit.
+view updates preserve undo. Height reports wait for replacement layout and carry that epoch, so a stale
+document cannot resize the active note. Marked-text composition freezes projection until commit.
 
 The footer's `textformat` control opens a Tinycast-owned compact glass formatting pill. Heading,
 emphasis, and list controls are grouped and open small menus above the pill; link, inline code, fenced
