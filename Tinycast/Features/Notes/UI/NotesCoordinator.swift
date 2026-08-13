@@ -20,6 +20,7 @@ final class NotesCoordinator {
 
     private let store: NotesStore
     private let search: NotesSearchSession
+    private let presentation: NotesPresentationStore
     private let settings: AppSettings
     private let appIndex: AppIndex
     private let palette: PaletteState
@@ -35,12 +36,7 @@ final class NotesCoordinator {
     private var pendingPresentation: Presentation?
     private var enablementGeneration = 0
     private(set) var isSwitcherPresented = false
-    private(set) var isFormattingPresented = false {
-        didSet {
-            guard oldValue != isFormattingPresented else { return }
-            windowController.setFormattingPresented(isFormattingPresented)
-        }
-    }
+    private(set) var isWindowKey = false
     private(set) var activeFormattingCommands: Set<NoteMarkdownCommand> = [.normal]
     private(set) var switcherSelection: NoteID?
     private(set) var switcherFocusRevision = 0
@@ -49,6 +45,7 @@ final class NotesCoordinator {
     init(
         store: NotesStore,
         search: NotesSearchSession,
+        presentation: NotesPresentationStore,
         settings: AppSettings,
         appIndex: AppIndex,
         palette: PaletteState,
@@ -59,6 +56,7 @@ final class NotesCoordinator {
     ) {
         self.store = store
         self.search = search
+        self.presentation = presentation
         self.settings = settings
         self.appIndex = appIndex
         self.palette = palette
@@ -89,6 +87,13 @@ final class NotesCoordinator {
     var isSearching: Bool { search.isSearching }
     var visibleNotes: [NoteSummary] { search.visibleNotes }
     var noteSummaries: [NoteSummary] { store.summaries }
+    var isFormattingExpanded: Bool { presentation.isFormattingExpanded }
+    var isFormattingInteractive: Bool {
+        isFormattingExpanded
+            && !isSwitcherPresented
+            && windowController.isVisible
+            && store.hasLoadedDocument
+    }
 
     func synchronizeSearch() {
         search.updateSummaries()
@@ -99,7 +104,6 @@ final class NotesCoordinator {
         let generation = enablementGeneration
         appIndex.setNotesCommandsVisible(settings.notesEnabled)
         guard !settings.notesEnabled else { return }
-        isFormattingPresented = false
         pendingPresentation = nil
         loadTask?.cancel()
         loadTask = nil
@@ -109,6 +113,7 @@ final class NotesCoordinator {
         if palette.mode == .notesSearch { palette.prepare(mode: .launcher) }
         closeSwitcher(focusEditor: false)
         windowController.hide(restoreFocus: false)
+        synchronizeFormattingInteraction()
         Task { [weak self] in
             guard let self else { return }
             _ = await store.flush()
@@ -131,12 +136,12 @@ final class NotesCoordinator {
 
     func openSwitcher() {
         guard settings.notesEnabled, store.hasLoadedDocument else { return }
-        isFormattingPresented = false
         if isSwitcherPresented {
             switcherFocusRevision &+= 1
             return
         }
         isSwitcherPresented = true
+        synchronizeFormattingInteraction()
         search.begin()
         switcherSelection = store.activeID ?? store.summaries.first?.id
         switcherFocusRevision &+= 1
@@ -145,6 +150,7 @@ final class NotesCoordinator {
     func closeSwitcher(focusEditor: Bool = true) {
         guard isSwitcherPresented || !search.query.isEmpty else { return }
         isSwitcherPresented = false
+        synchronizeFormattingInteraction()
         switcherSelection = nil
         search.cancel()
         if focusEditor { windowController.focusEditor() }
@@ -152,18 +158,19 @@ final class NotesCoordinator {
 
     func hide() {
         pendingPresentation = nil
-        isFormattingPresented = false
         closeSwitcher(focusEditor: false)
         windowController.hide(restoreFocus: true)
+        synchronizeFormattingInteraction()
         Task { await store.flush() }
     }
 
     func handleEscape() {
-        if isFormattingPresented {
-            isFormattingPresented = false
-            windowController.focusEditor()
-        } else if isSwitcherPresented {
+        if isSwitcherPresented {
             closeSwitcher()
+        } else if isFormattingExpanded {
+            presentation.collapseFormatting()
+            synchronizeFormattingInteraction()
+            windowController.focusEditor()
         } else {
             hide()
         }
@@ -201,7 +208,6 @@ final class NotesCoordinator {
 
     func select(_ id: NoteID) {
         guard operationTask == nil else { return }
-        isFormattingPresented = false
         operationTask = Task { [weak self] in
             guard let self else { return }
             let previousID = store.activeID
@@ -316,22 +322,20 @@ final class NotesCoordinator {
 
     func toggleFormatting() {
         guard settings.notesEnabled, store.hasLoadedDocument, !isSwitcherPresented else { return }
-        if !isFormattingPresented {
+        if !isFormattingExpanded {
             activeFormattingCommands = windowController.formattingState()
         }
-        isFormattingPresented.toggle()
+        presentation.toggleFormatting()
+        synchronizeFormattingInteraction()
     }
 
     func dismissFormatting() {
-        isFormattingPresented = false
-    }
-
-    func updateFormattingFrame(_ frame: CGRect) {
-        windowController.updateFormattingFrame(frame)
+        presentation.collapseFormatting()
+        synchronizeFormattingInteraction()
     }
 
     func applyFormatting(_ command: NoteMarkdownCommand) {
-        guard isFormattingPresented else { return }
+        guard isFormattingInteractive else { return }
         windowController.perform(command)
         activeFormattingCommands = windowController.formattingState()
     }
@@ -359,11 +363,20 @@ final class NotesCoordinator {
     }
 
     func updateEditorHeight(_ height: CGFloat) {
+        guard !isSwitcherPresented else { return }
         windowController.updateEditorHeight(height)
     }
 
     func editorReady(_ textView: NoteTextView) {
         windowController.editorReady(textView)
+        if isFormattingExpanded {
+            activeFormattingCommands = windowController.formattingState()
+        }
+        synchronizeFormattingInteraction()
+    }
+
+    func setWindowKey(_ isKey: Bool) {
+        isWindowKey = isKey
     }
 
     func dragEnded() {
@@ -384,7 +397,6 @@ final class NotesCoordinator {
             search.cancel()
             paletteCoordinator.hidePalette(restoreFocus: false)
         }
-        isFormattingPresented = false
         pendingPresentation = presentation
         guard loadTask == nil else { return }
         let generation = enablementGeneration
@@ -462,6 +474,14 @@ final class NotesCoordinator {
             activate: activate,
             resizeAnchor: resizeAnchor,
             heightBehavior: heightBehavior)
+        if isFormattingExpanded {
+            activeFormattingCommands = windowController.formattingState()
+        }
+        synchronizeFormattingInteraction()
+    }
+
+    private func synchronizeFormattingInteraction() {
+        windowController.setFormattingInteractionActive(isFormattingInteractive)
     }
 
     private func present(_ issue: NotesStore.Issue) {

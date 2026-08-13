@@ -2,8 +2,8 @@ import SwiftUI
 
 struct NoteFormattingMenu: View {
     let selectedCommands: Set<NoteMarkdownCommand>
+    let isInteractive: Bool
     let onSelect: (NoteMarkdownCommand) -> Void
-    let onDismiss: () -> Void
     @FocusState private var focused: FocusTarget?
     @State private var expandedGroup: FormatGroup?
 
@@ -22,12 +22,25 @@ struct NoteFormattingMenu: View {
         }
         .animation(.easeOut(duration: Theme.Duration.exit), value: expandedGroup)
         .onAppear {
+            guard isInteractive else { return }
+            Task { @MainActor in
+                await Task.yield()
+                focused = initialFocus
+            }
+        }
+        .onChange(of: isInteractive) { _, interactive in
+            guard interactive else {
+                expandedGroup = nil
+                focused = nil
+                return
+            }
             Task { @MainActor in
                 await Task.yield()
                 focused = initialFocus
             }
         }
         .onMoveCommand(perform: moveFocus)
+        .disabled(!isInteractive)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Note Formatting")
     }
@@ -45,7 +58,6 @@ struct NoteFormattingMenu: View {
             commandButton(Item(.horizontalRule, "Horizontal Rule", "minus"))
             separator
             groupButton(.list)
-            dismissButton
         }
         .padding(Theme.Spacing.xs)
         .glassEffect(.regular, in: Capsule())
@@ -107,26 +119,6 @@ struct NoteFormattingMenu: View {
         .accessibilityAddTraits(selectedCommands.contains(item.command) ? .isSelected : [])
     }
 
-    private var dismissButton: some View {
-        Button {
-            expandedGroup = nil
-            onDismiss()
-        } label: {
-            SymbolImage(name: "textformat", size: Theme.Size.noteStatus)
-                .frame(
-                    width: Theme.Size.noteHeaderButton,
-                    height: Theme.Size.noteHeaderButton)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .background(buttonBackground(true))
-        .overlay(focusBorder(.dismiss))
-        .focused($focused, equals: .dismiss)
-        .help("Hide Format Buttons")
-        .accessibilityLabel("Hide Format Buttons")
-        .accessibilityAddTraits(.isSelected)
-    }
-
     private func groupMenu(_ group: FormatGroup) -> some View {
         VStack(spacing: 0) {
             ForEach(group.items) { item in
@@ -157,6 +149,7 @@ struct NoteFormattingMenu: View {
                 .background(buttonBackground(selectedCommands.contains(item.command)))
                 .overlay(focusBorder(.command(item.command)))
                 .focused($focused, equals: .command(item.command))
+                .accessibilityLabel(item.label)
                 .accessibilityAddTraits(
                     selectedCommands.contains(item.command) ? .isSelected : [])
             }
@@ -192,7 +185,7 @@ struct NoteFormattingMenu: View {
         [
             .command(.normal), .command(.bold), .command(.link), .command(.inlineCode),
             .command(.codeBlock), .command(.blockquote), .command(.horizontalRule),
-            .command(.unorderedList), .dismiss
+            .command(.unorderedList)
         ]
     }
 
@@ -266,7 +259,6 @@ struct NoteFormattingMenu: View {
 
 private enum FocusTarget: Hashable {
     case command(NoteMarkdownCommand)
-    case dismiss
 }
 
 private enum FormatGroup: CaseIterable {

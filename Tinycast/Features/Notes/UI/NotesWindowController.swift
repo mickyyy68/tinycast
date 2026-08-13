@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class NotesWindowController: NSObject {
+final class NotesWindowController: NSObject, NSWindowDelegate {
     enum ResizeAnchor {
         case top
         case center
@@ -23,8 +23,6 @@ final class NotesWindowController: NSObject {
     private weak var previousOwnWindow: NSWindow?
     private var editorHeight: CGFloat = 0
     private var editorGrowthPadding: CGFloat = 0
-    private var formattingFrame: CGRect?
-    private var formattingMonitor: Any?
     private(set) var isSuspended = false
     private var suspendedVisibleFrame: CGRect?
 
@@ -33,10 +31,6 @@ final class NotesWindowController: NSObject {
     }
 
     var isVisible: Bool { panel?.isVisible ?? false }
-
-    isolated deinit {
-        if let formattingMonitor { NSEvent.removeMonitor(formattingMonitor) }
-    }
 
     func show(
         initialEditorHeight: CGFloat,
@@ -79,7 +73,9 @@ final class NotesWindowController: NSObject {
         guard let panel, panel.isVisible else { return }
         suspendedVisibleFrame = panel.screen?.visibleFrame
         isSuspended = true
+        setFormattingInteractionActive(false)
         panel.orderOut(nil)
+        coordinator.setWindowKey(false)
     }
 
     func abandonSuspension() {
@@ -89,7 +85,9 @@ final class NotesWindowController: NSObject {
 
     func hide(restoreFocus: Bool) {
         abandonSuspension()
+        setFormattingInteractionActive(false)
         panel?.orderOut(nil)
+        coordinator.setWindowKey(false)
         guard restoreFocus else { return }
         if let previousOwnWindow, previousOwnWindow.isVisible {
             NSApp.activate(ignoringOtherApps: true)
@@ -128,44 +126,24 @@ final class NotesWindowController: NSObject {
         return editor.editorActions?.noteTextViewFormattingState(editor) ?? [.normal]
     }
 
-    func updateFormattingFrame(_ frame: CGRect) {
-        formattingFrame = frame
-    }
-
-    func setFormattingPresented(_ presented: Bool) {
-        editor?.keepsProjectionOnFocusLoss = presented
-        if !presented {
-            if let formattingMonitor { NSEvent.removeMonitor(formattingMonitor) }
-            formattingMonitor = nil
-            formattingFrame = nil
-            if let editor, panel?.firstResponder !== editor {
-                editor.editorActions?.noteTextViewFocusChanged(editor, isFocused: false)
-            }
-            return
-        }
-        guard formattingMonitor == nil else { return }
-        formattingMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
-            guard let self else { return event }
-            let insideMenu: Bool
-            if event.window === panel, let panel, let formattingFrame {
-                let appKitFrame = CGRect(
-                    x: formattingFrame.minX,
-                    y: (panel.contentView?.bounds.height ?? 0) - formattingFrame.maxY,
-                    width: formattingFrame.width,
-                    height: formattingFrame.height)
-                insideMenu = appKitFrame.contains(event.locationInWindow)
-            } else {
-                insideMenu = false
-            }
-            if !insideMenu {
-                Task { @MainActor [weak coordinator] in coordinator?.dismissFormatting() }
-            }
-            return event
-        }
+    func setFormattingInteractionActive(_ active: Bool) {
+        editor?.keepsProjectionOnFocusLoss = active
+        guard !active, let editor, panel?.firstResponder !== editor else { return }
+        editor.editorActions?.noteTextViewFocusChanged(editor, isFocused: false)
     }
 
     func saveFrame() {
-        panel?.saveFrame(usingName: Self.frameAutosaveName)
+        guard let panel else { return }
+        position(panel, restoreSavedFrame: false, heightBehavior: .preserve)
+        panel.saveFrame(usingName: Self.frameAutosaveName)
+    }
+
+    func windowDidBecomeKey(_ notification: Notification) {
+        coordinator.setWindowKey(true)
+    }
+
+    func windowDidResignKey(_ notification: Notification) {
+        coordinator.setWindowKey(false)
     }
 
     private func ensurePanel() -> NotesPanel {
@@ -179,6 +157,7 @@ final class NotesWindowController: NSObject {
         panel.onCreate = { [weak coordinator] in coordinator?.createNote() }
         panel.onSearch = { [weak coordinator] in coordinator?.openSwitcher() }
         panel.onDelete = { [weak coordinator] in coordinator?.trashSwitcherSelection() }
+        panel.delegate = self
         panel.setFrameAutosaveName(Self.frameAutosaveName)
         self.panel = panel
         return panel

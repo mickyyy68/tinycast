@@ -117,6 +117,7 @@ run notes-test             Tinycast/Platform/Signposts.swift \
                            $L/SearchRelevance.swift \
                            Tinycast/Features/Notes/Model/*.swift \
                            Tinycast/Features/Notes/Service/*.swift
+run notes-presentation-test Tinycast/Features/Notes/Service/NotesPresentationStore.swift
 run notes-editor-test      Tinycast/Platform/Signposts.swift \
                            Tinycast/DesignSystem/Theme.swift \
                            Tinycast/Features/Notes/Model/NoteDocument.swift \

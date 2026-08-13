@@ -65,6 +65,7 @@ If a change touches anything in the right column, the harness on the left is man
 | `quicklink-test` | all four files in `Quicklinks/Model/` |
 | `snippets-test` | all of `Snippets/Model/` and `Snippets/Service/`, plus `Platform/HealthTicker.swift` |
 | `notes-test` | all of `Notes/Model/` and `Notes/Service/`, plus the real fuzzy matcher and signposts |
+| `notes-presentation-test` | the injected-defaults formatting presentation store |
 | `notes-editor-test` | the Notes projection editor with real TextKit 2 and AppKit undo objects |
 | `raycast-test` | `Backup/Model/RaycastFormat.swift`, `RaycastV1Decoder.swift`, `Service/Gunzip.swift` |
 | `settings-backup-test` | `Settings/AppSettingsKey.swift`, `Backup/Model/SettingsBackupCoverage.swift` |
@@ -315,7 +316,10 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   file size for other notes
 - The compact formatting pill, its grouped menus, keyboard navigation, every formatting action, and
   Command-B/I/K plus Shift-Command-X/7/8/9 update literal source and undo in one step
-- Applying several formatting actions keeps the pill open; its toggle, Escape, and an outside click close it
+- Applying several formatting actions keeps the pill open; its close circle and Escape collapse it,
+  while an outside click does not
+- Formatting expansion survives hide/show and a fresh Dev relaunch; opening the switcher closes an open
+  family menu without changing that preference
 - Return continues bullets, numbers, and tasks; an empty item exits, and Tab/Shift-Tab nest and outdent
 - Edit one note, switch to a shorter note, then Undo and Redo: the new note remains intact and the app
   does not terminate; repeat after a clean external reload

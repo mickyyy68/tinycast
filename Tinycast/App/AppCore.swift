@@ -34,6 +34,7 @@ final class AppCore {
     let quicklinkArguments = QuicklinkArgumentSession()
     let notesStore: NotesStore
     let notesSearch: NotesSearchSession
+    let notesPresentation: NotesPresentationStore
 
     /// Set when a quicklink editor should open with Settings; the pane consumes it.
     var pendingQuicklinkEdit: QuicklinkEditRequest?
@@ -74,6 +75,7 @@ final class AppCore {
     @ObservationIgnored private(set) lazy var notesCoordinator = NotesCoordinator(
         store: notesStore,
         search: notesSearch,
+        presentation: notesPresentation,
         settings: settings,
         appIndex: appIndex,
         palette: palette,
@@ -152,6 +154,7 @@ final class AppCore {
             })
         self.notesStore = notesStore
         notesSearch = NotesSearchSession(store: notesStore, repository: notesRepository)
+        notesPresentation = NotesPresentationStore()
     }
 
     func start() {

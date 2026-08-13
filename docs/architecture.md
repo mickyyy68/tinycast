@@ -34,7 +34,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ published through
 ┌─ OBSERVABLE STATE ───────────────▼─────────────────────────────────────────┐
-│ 29 @MainActor @Observable stores, sessions, indices and State types        │
+│ 31 @MainActor @Observable stores, sessions, indices and State types        │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ rendered by
 ┌─ VIEW ───────────────────────────▼─────────────────────────────────────────┐
@@ -76,7 +76,8 @@ app: the stores (`AppIndex`, `ClipboardStore`, `SnippetsStore`, `QuicklinkStore`
 `CurrencyRateStore`, `FrequentEmojiStore`), the managers and monitors (`ClipboardManager`,
 `HotKeyManager`, `HyperKeyTap`, `RunningAppsMonitor`, `SnippetKeywordListener`), the shared state
 (`AppSettings`, `PaletteState`, `FileSearchSession`, `UninstallSession`,
-`QuicklinkArgumentSession`), `NotesStore`, the feature coordinators, and the window/status-item
+`QuicklinkArgumentSession`), `NotesStore`, `NotesPresentationStore`, the feature coordinators, and the
+window/status-item
 controllers.
 
 `AppDelegate.applicationDidFinishLaunching` calls `AppCore.shared.start()` and nothing else. That is the
@@ -131,7 +132,7 @@ the user enables direct menu-bar access, because a `MenuBarExtra` cannot provide
 
 ## Observation
 
-29 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
+31 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
 state through `@Environment` rather than `@EnvironmentObject`.
 
 Three things about this model are easy to get wrong:

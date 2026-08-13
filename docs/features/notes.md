@@ -53,9 +53,11 @@ performs filesystem effects; `NotesStore` drives its blocking work from detached
 
 ## Ownership and enablement
 
-`AppCore` owns `NotesStore`, `NotesSearchSession`, and `NotesMenuBarController`, then lazily constructs
-`NotesCoordinator`. `NotesView` receives only the coordinator through `@Environment`; it never receives
-`AppCore` or mutates the store.
+`AppCore` owns `NotesStore`, `NotesSearchSession`, `NotesPresentationStore`, and
+`NotesMenuBarController`, then lazily constructs `NotesCoordinator`. The presentation store persists
+only whether the formatting toolbar is expanded in the current app channel; it is not backed up.
+`NotesView` receives only the coordinator through `@Environment`; it never receives `AppCore` or mutates
+the stores.
 
 Settings > Notes owns `AppSettings.notesEnabled`, which is false when absent. The pane lists **Show
 Notes**, **Create Note**, and **Search Notes** from `CommandCatalog`, so it can still render them while
@@ -153,8 +155,10 @@ view updates preserve undo. Marked-text composition freezes projection until com
 The footer's `textformat` control opens a Tinycast-owned compact glass formatting pill. Heading,
 emphasis, and list controls are grouped and open small menus above the pill; link, inline code, fenced
 code, quote, and horizontal rule remain direct actions. Applying a command keeps the pill open and
-restores editor focus. The toggle, Escape, or an outside click closes it. Command-B, Command-I,
-Command-K, Shift-Command-X, and Shift-Command-7/8/9 use the same source-edit planner.
+restores editor focus. The separate close circle or Escape collapses it; outside clicks do not. Opening
+the switcher closes any family menu and disables the mounted pill without changing its persisted
+expanded choice. Command-B, Command-I, Command-K, Shift-Command-X, and Shift-Command-7/8/9 use the same
+source-edit planner.
 
 Return continues bullets, numbered items, and tasks, with new tasks unchecked. Return on an empty item
 or Backspace at its content boundary removes the list marker; Tab and Shift-Tab nest and outdent list
@@ -187,8 +191,10 @@ the same conflict copy before allowing the app to exit.
 matcher. It covers channel-separated directories, discovery of `Floating Note.md`, unlimited
 enumeration, unique titles, byte revisions, rename and Trash conflicts, search, selection, autosave,
 external reconciliation, recovery, parser/projection source preservation, formatting plans, and
-top-anchored layout. `Tests/notes-editor-test.swift` uses real AppKit text objects to cover collapsed
-layout, one source delivery per transaction, undo/redo, and stale-undo removal across note switches.
+margin-constrained bidirectional layout. `Tests/notes-presentation-test.swift` pins the formatting
+preference's default, persistence, and app-domain isolation. `Tests/notes-editor-test.swift` uses real
+AppKit text objects to cover collapsed layout, one source delivery per transaction, undo/redo, and
+stale-undo removal across note switches.
 
 The Notes manual sweep in `docs/testing.md` covers the panel, Settings projection, shortcuts, keyboard
 navigation, focus restoration, Finder, Trash recovery, large-directory search, and visual states.

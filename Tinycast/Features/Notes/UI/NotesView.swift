@@ -20,10 +20,9 @@ struct NotesView: View {
             }
             footer
                 .frame(height: Theme.Size.noteFooterHeight, alignment: .bottom)
-                .zIndex(notes.isFormattingPresented ? 1 : 0)
+                .zIndex(notes.isFormattingExpanded ? 1 : 0)
         }
-        .coordinateSpace(name: "notes-window")
-        .animation(.easeOut(duration: 0.12), value: notes.isFormattingPresented)
+        .animation(.easeOut(duration: 0.12), value: notes.isFormattingExpanded)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black.opacity(Theme.Colors.panelDimming))
         .background(VisualEffectView())
@@ -84,32 +83,36 @@ struct NotesView: View {
 
     private var footer: some View {
         ZStack(alignment: .bottom) {
-            if notes.isFormattingPresented, !notes.isSwitcherPresented {
+            if notes.isFormattingExpanded {
                 NoteFormattingMenu(
                     selectedCommands: notes.activeFormattingCommands,
-                    onSelect: notes.applyFormatting,
-                    onDismiss: notes.toggleFormatting)
+                    isInteractive: notes.isFormattingInteractive,
+                    onSelect: notes.applyFormatting)
                     .fixedSize()
-                    .onGeometryChange(for: CGRect.self) { proxy in
-                        proxy.frame(in: .named("notes-window"))
-                    } action: { frame in
-                        notes.updateFormattingFrame(frame)
-                    }
                     .transition(
                         .opacity.combined(
                             with: .scale(scale: 0.96, anchor: .bottom)))
+
+                HStack {
+                    Spacer()
+                    headerButton(
+                        title: "Hide Format Buttons",
+                        symbol: "xmark",
+                        enabled: notes.isFormattingInteractive,
+                        action: notes.dismissFormatting)
+                }
+                .padding(.horizontal, Theme.Spacing.md)
             } else {
                 Text(characterCountLabel)
                     .font(.caption)
                     .foregroundStyle(Theme.Colors.textTertiary)
                 HStack {
                     Spacer()
-                    if !notes.isSwitcherPresented {
-                        headerButton(
-                            title: "Show Format Buttons",
-                            symbol: "textformat",
-                            action: notes.toggleFormatting)
-                    }
+                    headerButton(
+                        title: "Show Format Buttons",
+                        symbol: "textformat",
+                        enabled: !notes.isSwitcherPresented,
+                        action: notes.toggleFormatting)
                 }
                 .padding(.horizontal, Theme.Spacing.md)
             }
@@ -147,6 +150,7 @@ struct NotesView: View {
     private func headerButton(
         title: String,
         symbol: String,
+        enabled: Bool = true,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -159,6 +163,8 @@ struct NotesView: View {
         }
         .buttonStyle(.plain)
         .frosted(in: Circle())
+        .disabled(!enabled)
+        .help(title)
     }
 
     private var status: NoteStatus {
