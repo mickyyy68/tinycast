@@ -83,9 +83,10 @@ Always `RoundedRectangle(cornerRadius:, style: .continuous)` — continuous corn
 `settingsSidebar 184` · `settingsRowIcon 20` · `dialogWidth 420` · `dialogIcon 32` · `hudWidth 200` ·
 `hudHeight 100` · `volumeTrackHeight 6` · `volumeKnob 16` · `volumeReadout 38`
 
-Notes adds `noteWidth 520`, `noteMinimumHeight 220`, `noteMaximumHeight 640`,
-`noteMaximumScreenFraction 0.7`, `noteHeaderHeight 44`, `noteEditorInset 16`,
-`noteHeaderButton 30`, and `noteStatus 16`. `noteCenterLiftFraction 0.08` is its initial optical lift.
+Notes adds `noteWidth 520`, `noteMinimumHeight 320`, `noteMaximumHeight 640`,
+`noteMaximumScreenFraction 0.7`, `noteHeaderHeight 44`, `noteFooterHeight 40`,
+`noteEditorInset 16`, `noteHeaderButton 30`, `noteStatus 16`, and `noteFormattingMenuWidth 176`.
+`noteCenterLiftFraction 0.08` is its initial optical lift.
 
 `keyCap` sizes the palette's keycap chips; `recorderKeyCap` (both size and radius) is the intentionally-smaller Settings shortcut-recorder chip.
 
@@ -140,30 +141,36 @@ Source: `Features/Notes/UI/`.
 
 Notes is a sibling surface, not a palette mode. `NotesPanel` uses the same borderless,
 non-activating, transparent AppKit recipe, but deliberately does not dismiss on resign-key. Its root
-applies `black panelDimming` → `VisualEffectView()` → one continuous `note` corner clip. The fixed
-header and editor are ordinary content; only the circular Format, Create, Reveal, and hide controls use
-glass.
+applies `black panelDimming` → `VisualEffectView()` → one continuous `note` corner clip. Its ordinary
+content is a fixed header, editor or switcher region, and fixed footer. Header actions and the expanded
+footer formatting pill use glass.
 
 `NotesWindowController` owns every frame change. TextKit 2 supplies the laid-out editor height, the
-controller adds the header, clamps to the note minimum and screen-aware maximum, and preserves the top
-edge so existing text never jumps upward. After the cap, the native editor scrolls internally. Frame
-autosaving restores position only; content determines size on every show.
+controller adds the header and footer, clamps to the note minimum and screen-aware maximum, and
+preserves the top edge so existing text never jumps upward. After the cap, the native editor scrolls
+internally. A minimum-height session preserves its initial editor breathing room as content grows, so a
+new laid-out line grows the panel immediately. Frame autosaving restores position only; content
+determines size on every show.
 
-The header keeps a fixed slot for status so Saving, Saved, failure, and conflict symbols cannot move
-the controls. Failure and conflict symbols can be clicked to reopen their recovery report after a
-dismissal. The title opens the in-window note switcher; the central spacer alone is a
-`WindowDragHandle`. Escape closes the switcher before hiding, while Command-W and the hide control
-order the panel out. Show Notes only shows or focuses; focus loss leaves the panel visible.
+The header centers the active title and keeps fixed side slots so its position never moves. Clean saved
+state is hidden at rest; save progress, failures, and conflicts remain visible, and hovering reveals
+Create, Reveal, and hide controls. Failure and conflict symbols can be clicked to reopen their recovery
+report after a dismissal. The title opens the in-window note switcher, while the empty header gutters
+remain draggable. Escape closes the switcher before hiding, while Command-W and the hide control order
+the panel out. Show Notes only shows or focuses; focus loss leaves the panel visible.
 
 The editor is one native TextKit 2 surface backed by a literal-source/display projection. Inactive
 Markdown markers occupy no layout width; entering a construct reveals its source without moving the
-panel's top edge. The `textformat` header control anchors a three-row glass formatting surface directly
-beneath itself rather than using an `NSMenu` or system popover. It overlays the editor, restores editor
-focus after a command, and closes before the same outside click continues to its original target.
+panel's top edge. The footer shows the canonical character count and a `textformat` toggle. Expanding it
+replaces those controls with one compact grouped formatting pill; heading, emphasis, and list families
+open small menus above it. Commands restore editor focus without dismissing the pill. The toggle, Escape,
+or an outside click closes it, with the outside click continuing to its original target.
 
-The compact switcher occupies the editor region without changing the frame. Its plain search field and
-keyboard-navigable rows use the shared selection/hover ramp; rename and Trash remain row actions rather
-than adding another toolbar or window. The separate Search Notes command uses the main palette's
+The compact switcher occupies the editor region without changing the frame, while the footer keeps the
+active note's character count and hides only the formatting toggle. Its plain search field and
+keyboard-navigable rows use the shared selection/hover ramp. The active row shows a Current marker and
+live character count; other rows show relative modification time and file size. Rename and Trash remain
+row actions rather than adding another toolbar or window. The separate Search Notes command uses the main palette's
 Clipboard-style split: a 290-point date-sectioned title list, the shared vertical hairline, and a
 read-only rendered Markdown preview. Typed results drop date headers to preserve relevance order.
 

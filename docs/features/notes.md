@@ -86,15 +86,21 @@ Command-N uses the create path and Command-P opens the compact switcher. Escape 
 first, then hides the panel; Command-W and the header close control hide it directly. Hiding restores
 the prior external application or Tinycast window and flushes without delaying the order-out.
 
-The existing 520-point editor surface remains. Its fixed header contains the note glyph, active-title
-switcher button, drag region, save/conflict state, Format, Create, Reveal, and close controls. The
-switcher replaces only the editor region, scrolls inside the current frame, and therefore never moves the
-panel's top edge or changes its saved size.
+The existing 520-point editor surface remains with a 320-point minimum height. Its fixed header centers
+the active-title switcher button, keeps clean saved state hidden at rest, and reveals Create, Reveal, and
+hide controls on hover without shifting the title. Saving, failure, and conflict state stays visible.
+The switcher replaces only the editor region, scrolls inside the current frame, and therefore never moves
+the panel's top edge or changes its saved size.
+
+The fixed footer shows the canonical character count and a formatting toggle. It remains present in the
+switcher, where the toggle is hidden. The active switcher row shows Current and the live character count;
+other rows show relative modification time and file size.
 
 During one open-note session the panel grows with content but never shrinks after deletions or
 projection changes. Switching to a different note or explicitly hiding and reopening Notes fits the
 panel to that document again. Temporarily suspending the editor for Search Notes preserves its current
-height.
+height. A document that starts at the minimum height retains its initial editor breathing room, so each
+increase in laid-out content height grows the panel immediately rather than first consuming that space.
 
 The compact switcher and palette browser share `NotesSearchSession`. An empty query lists metadata-only
 summaries by recency. A nonempty query is split on whitespace, debounced for 120 milliseconds, and
@@ -144,10 +150,11 @@ updates the store. Copy and Cut use source ranges. The editor epoch changes on n
 external reloads, clearing its custom native undo manager before a new source is installed; ordinary
 view updates preserve undo. Marked-text composition freezes projection until commit.
 
-The `textformat` header control opens a Tinycast-owned in-window formatting overlay. It supports Normal,
-H1–H3, bold, italic, strikethrough, inline code, links, quotes, bullets, numbering, tasks, fenced code,
-and horizontal rules. Command-B, Command-I, Command-K, Shift-Command-X, and Shift-Command-7/8/9 use the
-same source-edit planner. Escape closes formatting, then the switcher, then the window.
+The footer's `textformat` control opens a Tinycast-owned compact glass formatting pill. Heading,
+emphasis, and list controls are grouped and open small menus above the pill; link, inline code, fenced
+code, quote, and horizontal rule remain direct actions. Applying a command keeps the pill open and
+restores editor focus. The toggle, Escape, or an outside click closes it. Command-B, Command-I,
+Command-K, Shift-Command-X, and Shift-Command-7/8/9 use the same source-edit planner.
 
 Return continues bullets, numbered items, and tasks, with new tasks unchecked. Return on an empty item
 or Backspace at its content boundary removes the list marker; Tab and Shift-Tab nest and outdent list

@@ -71,10 +71,14 @@ struct NoteSwitcherView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: 0) {
+                        let activeID = notes.activeID
+                        let activeCharacterCount = notes.editorInput.source.count
                         ForEach(notes.visibleNotes) { summary in
                             NoteSwitcherRow(
                                 summary: summary,
                                 selected: notes.switcherSelection == summary.id,
+                                current: activeID == summary.id,
+                                currentCharacterCount: activeCharacterCount,
                                 editing: editingID == summary.id,
                                 titleDraft: $titleDraft,
                                 onActivate: { notes.select(summary.id) },
@@ -130,6 +134,8 @@ struct NoteSwitcherView: View {
 private struct NoteSwitcherRow: View {
     let summary: NoteSummary
     let selected: Bool
+    let current: Bool
+    let currentCharacterCount: Int
     let editing: Bool
     @Binding var titleDraft: String
     let onActivate: () -> Void
@@ -151,15 +157,21 @@ private struct NoteSwitcherRow: View {
             SymbolImage(name: "text.page", size: Theme.Size.noteStatus)
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .frame(width: Theme.Size.rowIcon, height: Theme.Size.rowIcon)
-            if editing {
-                TextField("Note title", text: $titleDraft)
-                    .textFieldStyle(.plain)
-                    .focused($titleFocused)
-                    .onSubmit(onCommitRename)
-                    .onExitCommand(perform: onCancelRename)
-            } else {
-                Text(summary.title)
-                    .font(Theme.Typography.rowTitle)
+            VStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
+                if editing {
+                    TextField("Note title", text: $titleDraft)
+                        .textFieldStyle(.plain)
+                        .focused($titleFocused)
+                        .onSubmit(onCommitRename)
+                        .onExitCommand(perform: onCancelRename)
+                } else {
+                    Text(summary.title)
+                        .font(Theme.Typography.rowTitle)
+                        .lineLimit(1)
+                }
+                metadata
+                    .font(.caption)
+                    .foregroundStyle(Theme.Colors.textSecondary)
                     .lineLimit(1)
             }
             Spacer(minLength: Theme.Spacing.md)
@@ -182,7 +194,7 @@ private struct NoteSwitcherRow: View {
         }
         .onHover { hovered = $0 }
         .accessibilityElement(children: editing ? .contain : .combine)
-        .accessibilityLabel(summary.title)
+        .accessibilityLabel("\(summary.title), \(metadataLabel)")
         .accessibilityAddTraits(selected ? .isSelected : [])
         .onChange(of: editing) { _, editing in
             if editing {
@@ -193,6 +205,43 @@ private struct NoteSwitcherRow: View {
             }
         }
     }
+
+    @ViewBuilder
+    private var metadata: some View {
+        if current {
+            HStack(spacing: Theme.Spacing.xs) {
+                Circle()
+                    .fill(Theme.Colors.textSecondary)
+                    .frame(width: Theme.Spacing.xs, height: Theme.Spacing.xs)
+                Text("Current")
+                Text("•")
+                Text(characterCountLabel)
+            }
+        } else {
+            Text(metadataLabel)
+        }
+    }
+
+    private var metadataLabel: String {
+        guard !current else { return "Current, \(characterCountLabel)" }
+        let modified = Self.relativeFormatter.localizedString(
+            for: summary.modifiedAt,
+            relativeTo: .now)
+        let size = Int64(summary.byteCount).formatted(.byteCount(style: .file))
+        return "Modified \(modified) • \(size)"
+    }
+
+    private var characterCountLabel: String {
+        "\(currentCharacterCount.formatted()) "
+            + (currentCharacterCount == 1 ? "character" : "characters")
+    }
+
+    @MainActor private static let relativeFormatter: RelativeDateTimeFormatter = {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.dateTimeStyle = .named
+        formatter.unitsStyle = .abbreviated
+        return formatter
+    }()
 
     private func rowButton(
         title: String,

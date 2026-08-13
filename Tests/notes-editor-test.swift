@@ -11,6 +11,7 @@ struct NotesEditorTests {
         testProjectedEditingAndUndoIsolation()
         testCanonicalCopyAndCut()
         testCaretAnchoringAcrossProjectionChanges()
+        testNewlineReportsGrowingContentHeight()
         testBottomEditingPreservesViewport()
         testTaskOverlayLifetime()
         print(failures == 0 ? "Notes editor tests passed" : "\(failures) tests failed")
@@ -393,6 +394,43 @@ struct NotesEditorTests {
         check(
             "typing at the bottom does not reset the scroll position",
             scrollView.contentView.bounds.origin.y > 0)
+    }
+
+    private static func testNewlineReportsGrowingContentHeight() {
+        let source = (0..<16).map { "Line \($0)" }.joined(separator: "\n")
+        var heights: [CGFloat] = []
+        let input = NoteEditorInput(
+            id: NoteID(rawValue: "Growing.md"),
+            source: source,
+            epoch: 1)
+        let view = NoteEditorView(
+            input: input,
+            onSourceChange: { _ in },
+            onContentHeightChange: { heights.append($0) },
+            onReady: { _ in },
+            onOpenLink: { _ in })
+        let coordinator = NoteEditorView.Coordinator(parent: view)
+        let textView = NoteTextView(usingTextLayoutManager: true)
+        NoteTextStyler.configure(textView, editable: true)
+        textView.editorActions = coordinator
+        textView.editorUndoManager = coordinator.editorUndoManager
+        textView.setFrameSize(NSSize(width: 520, height: 236))
+        let scrollView = NSScrollView(frame: NSRect(x: 0, y: 0, width: 520, height: 236))
+        scrollView.documentView = textView
+        coordinator.textView = textView
+        coordinator.install(input, resetUndo: false)
+        coordinator.reportHeight()
+        let initialHeight = heights.last ?? 0
+
+        let end = (textView.string as NSString).length
+        textView.setSelectedRange(NSRange(location: end, length: 0))
+        _ = coordinator.textView(
+            textView,
+            shouldChangeTextIn: textView.selectedRange(),
+            replacementString: "\n")
+
+        check("multiline content exceeds the minimum editor viewport", initialHeight > 236)
+        check("a newline reports a larger intrinsic editor height", (heights.last ?? 0) > initialHeight)
     }
 
     private static func testCanonicalCopyAndCut() {

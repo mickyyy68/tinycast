@@ -39,11 +39,12 @@ enum Theme {
         static let panelWidth: CGFloat = 750
         static let panelHeight: CGFloat = 475
         static let noteWidth: CGFloat = 520
-        static let noteMinimumHeight: CGFloat = 220
+        static let noteMinimumHeight: CGFloat = 320
         static let noteMaximumHeight: CGFloat = 640
         static let noteMaximumScreenFraction: CGFloat = 0.7
         static let noteCenterLiftFraction: CGFloat = 0.08
         static let noteHeaderHeight: CGFloat = 44
+        static let noteFooterHeight: CGFloat = 40
         static let noteEditorInset: CGFloat = 16
         /// Fraction of visible height above the palette's top edge; it grows downward.
         static let paletteTopMarginFraction: CGFloat = 0.18
@@ -85,6 +86,7 @@ enum Theme {
         static let menuButton: CGFloat = 36
         static let noteHeaderButton: CGFloat = 30
         static let noteStatus: CGFloat = 16
+        static let noteFormattingMenuWidth: CGFloat = 176
         /// The uninstall list's leading checkbox / lock glyph.
         static let checkbox: CGFloat = 16
         static let clipboardListWidth: CGFloat = 290

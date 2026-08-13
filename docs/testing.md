@@ -289,8 +289,9 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   or focuses the same editor, and turning either setting off removes it immediately
 - Show Notes opens the last active note and focuses an already visible window without hiding it
 - Create Note makes one unique Untitled file, including as the first action in an empty channel
-- The title opens the switcher; Command-P focuses search, arrows move selection, Return opens, and
-  Command-N creates
+- The centered title opens the switcher; hovering the header reveals Create, Reveal, and hide without
+  shifting the title, while saving, failure, and conflict state remain visible
+- Command-P focuses switcher search, arrows move selection, Return opens, and Command-N creates
 - Empty switcher search reads the complete recent list; title and body searches rank correctly and a
   superseded query never publishes
 - Search Notes opens the 750-point palette with date-sectioned titles and a rendered Markdown preview;
@@ -308,14 +309,22 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - An existing `Floating Note.md` appears as an ordinary note without conversion
 - Markdown markers collapse without source-width gaps and return when the caret enters their construct;
   links show labels, task checkboxes toggle, and images remain literal source
-- The Format button, its keyboard navigation, every formatting action, and Command-B/I/K plus
-  Shift-Command-X/7/8/9 update literal source and undo in one step
+- The footer character count follows canonical source; it remains visible in the switcher while the
+  formatting toggle is hidden
+- Switcher rows show Current plus live character count for the active note and modification time plus
+  file size for other notes
+- The compact formatting pill, its grouped menus, keyboard navigation, every formatting action, and
+  Command-B/I/K plus Shift-Command-X/7/8/9 update literal source and undo in one step
+- Applying several formatting actions keeps the pill open; its toggle, Escape, and an outside click close it
 - Return continues bullets, numbers, and tasks; an empty item exits, and Tab/Shift-Tab nest and outdent
 - Edit one note, switch to a shorter note, then Undo and Redo: the new note remains intact and the app
   does not terminate; repeat after a clean external reload
 - Marked-text input, emoji, combining marks, Copy, Cut, Paste, Select All, and Command-click links keep
   exact Markdown and ordinary clicks only reveal source
-- The panel grows downward without moving its header, stops at its screen-aware cap, then scrolls
+- The panel starts no shorter than 320 points, grows downward without moving its header, stops at its
+  screen-aware cap, then scrolls
+- Adding a laid-out line grows even a minimum-height panel immediately instead of consuming its initial
+  editor breathing room
 - After a tall note expands the panel, deleting most of its content keeps the workspace tall; typing
   enough content grows it again, while switching notes or hiding and reopening fits the new session
 - Opening Search Notes over a tall editor and cancelling restores the editor at the same height

@@ -570,14 +570,38 @@ struct NotesTests {
     private static func testWindowLayout() {
         let metrics = NoteWindowLayout.Metrics(
             width: 520,
-            minimumHeight: 220,
+            minimumHeight: 320,
             maximumHeight: 640,
             maximumScreenFraction: 0.7,
             fixedContentHeight: 84)
         check(
             "short notes use the minimum height",
             NoteWindowLayout.panelHeight(
-                editorContentHeight: 10, visibleScreenHeight: 900, metrics: metrics) == 220)
+                editorContentHeight: 10, visibleScreenHeight: 900, metrics: metrics) == 320)
+        check(
+            "natural height includes header and footer chrome",
+            NoteWindowLayout.panelHeight(
+                editorContentHeight: 300, visibleScreenHeight: 900, metrics: metrics) == 384)
+        check(
+            "live editing grows from the new minimum height",
+            NoteWindowLayout.growOnlyPanelHeight(
+                editorContentHeight: 300,
+                currentPanelHeight: 320,
+                visibleScreenHeight: 900,
+                metrics: metrics) == 384)
+        let growthPadding = NoteWindowLayout.editorGrowthPadding(
+            initialEditorContentHeight: 32,
+            initialPanelHeight: 320,
+            metrics: metrics)
+        check("minimum-height sessions retain their initial editor breathing room", growthPadding == 204)
+        check(
+            "a new line grows a minimum-height session immediately",
+            NoteWindowLayout.growOnlyPanelHeight(
+                editorContentHeight: 48,
+                editorGrowthPadding: growthPadding,
+                currentPanelHeight: 320,
+                visibleScreenHeight: 900,
+                metrics: metrics) == 336)
         check(
             "long notes stop at the display fraction",
             NoteWindowLayout.panelHeight(
@@ -606,13 +630,13 @@ struct NotesTests {
         check(
             "a new sizing session can fit a short note again",
             NoteWindowLayout.panelHeight(
-                editorContentHeight: 10, visibleScreenHeight: 900, metrics: metrics) == 220)
+                editorContentHeight: 10, visibleScreenHeight: 900, metrics: metrics) == 320)
         check(
             "restoring a suspended editor preserves its panel height",
             NoteWindowLayout.preservedPanelHeight(
                 400, visibleScreenHeight: 900, metrics: metrics) == 400)
 
-        let current = CGRect(x: 300, y: 300, width: 520, height: 220)
+        let current = CGRect(x: 300, y: 300, width: 520, height: 320)
         let visible = CGRect(x: 0, y: 0, width: 1_200, height: 900)
         let resized = NoteWindowLayout.resizedFrame(
             currentFrame: current, height: 400, visibleFrame: visible, width: 520)

@@ -8,7 +8,7 @@ final class NotesWindowController: NSObject {
         case center
     }
 
-    enum HeightBehavior {
+    enum HeightBehavior: Equatable {
         case fitContent
         case growOnly
         case preserve
@@ -22,6 +22,7 @@ final class NotesWindowController: NSObject {
     private var previousApp: NSRunningApplication?
     private weak var previousOwnWindow: NSWindow?
     private var editorHeight: CGFloat = 0
+    private var editorGrowthPadding: CGFloat = 0
     private var formattingFrame: CGRect?
     private var formattingMonitor: Any?
     private(set) var isSuspended = false
@@ -50,6 +51,7 @@ final class NotesWindowController: NSObject {
         isSuspended = false
         suspendedVisibleFrame = nil
         editorHeight = initialEditorHeight
+        if heightBehavior == .fitContent { editorGrowthPadding = 0 }
         let panel = ensurePanel()
         position(
             panel,
@@ -57,6 +59,12 @@ final class NotesWindowController: NSObject {
             preferredVisibleFrame: preferredVisibleFrame,
             resizeAnchor: resizeAnchor,
             heightBehavior: heightBehavior)
+        if heightBehavior == .fitContent {
+            editorGrowthPadding = NoteWindowLayout.editorGrowthPadding(
+                initialEditorContentHeight: initialEditorHeight,
+                initialPanelHeight: panel.frame.height,
+                metrics: Self.metrics)
+        }
         panel.contentView?.layoutSubtreeIfNeeded()
         if activate {
             panel.makeKeyAndOrderFront(nil)
@@ -199,6 +207,7 @@ final class NotesWindowController: NSObject {
         case .growOnly:
             NoteWindowLayout.growOnlyPanelHeight(
                 editorContentHeight: editorHeight,
+                editorGrowthPadding: editorGrowthPadding,
                 currentPanelHeight: panel.frame.height,
                 visibleScreenHeight: visibleFrame.height,
                 metrics: Self.metrics)
@@ -271,5 +280,5 @@ final class NotesWindowController: NSObject {
         minimumHeight: Theme.Size.noteMinimumHeight,
         maximumHeight: Theme.Size.noteMaximumHeight,
         maximumScreenFraction: Theme.Size.noteMaximumScreenFraction,
-        fixedContentHeight: Theme.Size.noteHeaderHeight)
+        fixedContentHeight: Theme.Size.noteHeaderHeight + Theme.Size.noteFooterHeight)
 }
