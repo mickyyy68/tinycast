@@ -341,6 +341,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   activated while the refreshed results are loading
 - Hide during Select, Rename, and the Trash confirmation; each operation may finish, but the panel stays
   hidden even after a later reopen, and Trash selects next, then previous, then its fallback row
+- While Trash confirmation is open, externally reorder the notes; accepting selects the successor from
+  the newly visible order rather than the order from before confirmation
 - Hide while Create is pending, and leave or dismiss Search Notes while a result is opening; filesystem
   work may finish, but no stale completion may show, focus, or switch the Notes editor
 - The compact formatting pill, its grouped menus, keyboard navigation, every formatting action, and

@@ -370,7 +370,6 @@ final class NotesCoordinator {
             let title = store.summaries.first(where: { $0.id == id })?.title
         else { return }
         let visibilityRevision = windowVisibilityIntent.revision
-        let switcherOrder = visibleNotes.map(\.id)
         operationTask = Task { [weak self] in
             guard let self else { return }
             let previousID = store.activeID
@@ -379,6 +378,7 @@ final class NotesCoordinator {
                 operationTask = nil
                 return
             }
+            let switcherOrder = visibleNotes.map(\.id)
             let removed = await store.trash(id)
             operationTask = nil
             guard removed, settings.notesEnabled, !Task.isCancelled else {
