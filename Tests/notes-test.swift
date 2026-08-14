@@ -125,25 +125,25 @@ struct NotesTests {
             "Command-Delete remains native in the editor",
             !NoteShortcutPolicy.handlesDelete(switcherPresented: false, renameActive: false))
 
-        var visibility = NoteWindowVisibilityIntent()
-        let capturedRevision = visibility.revision
+        var presentation = NotePresentationGeneration()
+        let capturedGeneration = presentation.current
         check(
             "an unchanged visible window accepts an operation completion",
-            visibility.permitsCompletion(capturedRevision: capturedRevision, isVisible: true))
+            presentation.permitsCompletion(capturedGeneration: capturedGeneration, isVisible: true))
         check(
             "an unchanged presentation accepts an async open completion",
-            visibility.permitsPresentation(capturedRevision: capturedRevision))
-        visibility.supersede()
+            presentation.permitsPresentation(capturedGeneration: capturedGeneration))
+        presentation.advance()
         check(
-            "a newer window intent rejects an old operation completion",
-            !visibility.permitsCompletion(capturedRevision: capturedRevision, isVisible: true))
+            "a newer presentation generation rejects an old operation completion",
+            !presentation.permitsCompletion(capturedGeneration: capturedGeneration, isVisible: true))
         check(
-            "a newer presentation rejects an old async open completion",
-            !visibility.permitsPresentation(capturedRevision: capturedRevision))
+            "a newer presentation generation rejects an old async open completion",
+            !presentation.permitsPresentation(capturedGeneration: capturedGeneration))
         check(
             "a hidden window rejects an operation completion",
-            !visibility.permitsCompletion(
-                capturedRevision: visibility.revision,
+            !presentation.permitsCompletion(
+                capturedGeneration: presentation.current,
                 isVisible: false))
 
         let first = NoteID(rawValue: "First.md")

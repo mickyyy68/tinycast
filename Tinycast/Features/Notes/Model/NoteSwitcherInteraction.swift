@@ -35,22 +35,6 @@ enum NoteShortcutPolicy {
     }
 }
 
-struct NoteWindowVisibilityIntent: Sendable, Equatable {
-    private(set) var revision = 0
-
-    mutating func supersede() {
-        revision &+= 1
-    }
-
-    func permitsCompletion(capturedRevision: Int, isVisible: Bool) -> Bool {
-        isVisible && capturedRevision == revision
-    }
-
-    func permitsPresentation(capturedRevision: Int) -> Bool {
-        capturedRevision == revision
-    }
-}
-
 enum NoteSwitcherSelection {
     static func replacement(
         afterRemoving removed: NoteID,

@@ -43,7 +43,7 @@ final class NotesCoordinator {
     @ObservationIgnored private(set) var switcherHoverHighlightArmed = false
     private(set) var switcherHoverDisarmRevision = 0
     private var switcherRename = NoteSwitcherRenameState()
-    private var windowVisibilityIntent = NoteWindowVisibilityIntent()
+    private var presentationGeneration = NotePresentationGeneration()
     private var restoresEditorAfterSearch = false
     @ObservationIgnored private var switcherHoverAnchor = CGPoint.zero
 
@@ -116,7 +116,7 @@ final class NotesCoordinator {
         let generation = enablementGeneration
         appIndex.setNotesCommandsVisible(settings.notesEnabled)
         guard !settings.notesEnabled else { return }
-        windowVisibilityIntent.supersede()
+        presentationGeneration.advance()
         pendingPresentation = nil
         loadTask?.cancel()
         loadTask = nil
@@ -172,7 +172,7 @@ final class NotesCoordinator {
     }
 
     func hide() {
-        windowVisibilityIntent.supersede()
+        presentationGeneration.advance()
         pendingPresentation = nil
         closeSwitcher(focusEditor: false)
         windowController.hide(restoreFocus: true)
@@ -259,7 +259,7 @@ final class NotesCoordinator {
 
     func select(_ id: NoteID) {
         guard operationTask == nil else { return }
-        let visibilityRevision = windowVisibilityIntent.revision
+        let capturedGeneration = presentationGeneration.current
         operationTask = Task { [weak self] in
             guard let self else { return }
             let previousID = store.activeID
@@ -269,8 +269,8 @@ final class NotesCoordinator {
                 if !settings.notesEnabled { store.stop() }
                 return
             }
-            guard windowVisibilityIntent.permitsCompletion(
-                capturedRevision: visibilityRevision,
+            guard presentationGeneration.permitsCompletion(
+                capturedGeneration: capturedGeneration,
                 isVisible: windowController.isVisible)
             else { return }
             closeSwitcher()
@@ -282,7 +282,7 @@ final class NotesCoordinator {
 
     func openSearchResult(_ id: NoteID) {
         guard settings.notesEnabled, operationTask == nil else { return }
-        let visibilityRevision = windowVisibilityIntent.revision
+        let capturedGeneration = presentationGeneration.current
         operationTask = Task { [weak self] in
             guard let self else { return }
             let previousID = store.activeID
@@ -292,8 +292,8 @@ final class NotesCoordinator {
                 if !settings.notesEnabled { store.stop() }
                 return
             }
-            guard windowVisibilityIntent.permitsPresentation(
-                capturedRevision: visibilityRevision)
+            guard presentationGeneration.permitsPresentation(
+                capturedGeneration: capturedGeneration)
             else { return }
             restoresEditorAfterSearch = false
             search.cancel()
@@ -307,7 +307,7 @@ final class NotesCoordinator {
 
     func paletteDidDismiss(_ mode: PaletteMode, restoreFocus: Bool) -> Bool {
         guard mode == .notesSearch else { return false }
-        windowVisibilityIntent.supersede()
+        presentationGeneration.advance()
         search.cancel()
         guard restoresEditorAfterSearch, settings.notesEnabled, store.hasLoadedDocument else {
             restoresEditorAfterSearch = false
@@ -322,7 +322,7 @@ final class NotesCoordinator {
     }
 
     func leaveSearchPalette() {
-        windowVisibilityIntent.supersede()
+        presentationGeneration.advance()
         restoresEditorAfterSearch = false
         windowController.abandonSuspension()
         search.cancel()
@@ -330,7 +330,7 @@ final class NotesCoordinator {
 
     func rename(_ id: NoteID, to title: String) {
         guard operationTask == nil else { return }
-        let visibilityRevision = windowVisibilityIntent.revision
+        let capturedGeneration = presentationGeneration.current
         operationTask = Task { [weak self] in
             guard let self else { return }
             let renamedID = await store.rename(id, to: title)
@@ -342,8 +342,8 @@ final class NotesCoordinator {
             switcherSelection = renamedID
             search.refreshSummaries()
             if renamedID == store.activeID,
-                windowVisibilityIntent.permitsCompletion(
-                    capturedRevision: visibilityRevision,
+                presentationGeneration.permitsCompletion(
+                    capturedGeneration: capturedGeneration,
                     isVisible: windowController.isVisible)
             {
                 showLoadedNote(focusEditor: false, heightBehavior: .preserve)
@@ -369,7 +369,7 @@ final class NotesCoordinator {
         guard operationTask == nil,
             let title = store.summaries.first(where: { $0.id == id })?.title
         else { return }
-        let visibilityRevision = windowVisibilityIntent.revision
+        let capturedGeneration = presentationGeneration.current
         operationTask = Task { [weak self] in
             guard let self else { return }
             let previousID = store.activeID
@@ -390,8 +390,8 @@ final class NotesCoordinator {
                 from: switcherOrder,
                 fallback: store.activeID ?? store.summaries.first?.id)
             search.refreshSummaries()
-            guard windowVisibilityIntent.permitsCompletion(
-                capturedRevision: visibilityRevision,
+            guard presentationGeneration.permitsCompletion(
+                capturedGeneration: capturedGeneration,
                 isVisible: windowController.isVisible)
             else { return }
             showLoadedNote(
@@ -539,10 +539,10 @@ final class NotesCoordinator {
                 heightBehavior: windowController.isVisible || windowController.isSuspended
                     ? .preserve : .fitContent)
         case .create:
-            let visibilityRevision = windowVisibilityIntent.revision
+            let capturedGeneration = presentationGeneration.current
             guard await store.create(), settings.notesEnabled, !Task.isCancelled,
-                windowVisibilityIntent.permitsPresentation(
-                    capturedRevision: visibilityRevision)
+                presentationGeneration.permitsPresentation(
+                    capturedGeneration: capturedGeneration)
             else { return }
             closeSwitcher()
             showLoadedNote(focusEditor: true, heightBehavior: .fitContent)
