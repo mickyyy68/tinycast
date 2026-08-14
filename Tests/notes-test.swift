@@ -74,6 +74,22 @@ struct NotesTests {
         search.refreshPreview(betaID)
         await waitUntil { search.previewState == .ready }
         check("replacement selection refreshes its preview", search.previewID == betaID)
+
+        _ = try require(await store.rename(betaID, to: "Gamma"))
+        search.refreshSummaries()
+        check("rename removes its stale search row immediately", !search.results.contains { $0.id == betaID })
+        await waitUntil { search.state == .ready }
+        check("rename refreshes the current search without its stale match", search.results.isEmpty)
+
+        search.updateQuery("alpha")
+        await waitUntil { search.state == .ready }
+        check("the refreshed collection still finds another note", search.results.map(\.id) == [alphaID])
+        let removedAlpha = await store.trash(alphaID)
+        check("trash removes the searched note", removedAlpha)
+        search.refreshSummaries()
+        check("trash removes its stale search row immediately", !search.results.contains { $0.id == alphaID })
+        await waitUntil { search.state == .ready }
+        check("trash refreshes the current search without an actionable removed row", search.results.isEmpty)
     }
 
     private static func testSwitcherInteraction() {

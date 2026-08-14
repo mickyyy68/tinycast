@@ -335,6 +335,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   then replaces them together with only the latest search result
 - Changing one nonempty Search Notes query to another retains both the prior rows and their selected
   preview through debounce, then refreshes the preview when replacement selection changes
+- Rename or Trash a row matching the active query; the old row disappears immediately and cannot be
+  activated while the refreshed results are loading
 - Hide during Select, Rename, and the Trash confirmation; each operation may finish, but the panel stays
   hidden even after a later reopen, and Trash selects next, then previous, then its fallback row
 - Hide while Create is pending, and leave or dismiss Search Notes while a result is opening; filesystem

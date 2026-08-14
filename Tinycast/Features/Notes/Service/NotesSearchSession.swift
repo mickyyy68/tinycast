@@ -67,27 +67,24 @@ final class NotesSearchSession {
         startSearch(next)
     }
 
-    func synchronize() {
-        guard !NoteSearch.Query(query).isEmpty else {
-            if let previewID, !store.summaries.contains(where: { $0.id == previewID }) {
-                clearPreview()
-            }
-            return
-        }
-        startSearch(NoteSearch.Query(query))
-    }
-
-    func updateSummaries() {
-        if NoteSearch.Query(query).isEmpty {
+    func refreshSummaries() {
+        let parsed = NoteSearch.Query(query)
+        if parsed.isEmpty {
             guard let previewID else { return }
             if store.summaries.contains(where: { $0.id == previewID }) {
                 loadPreview(previewID, force: true)
             } else {
                 clearPreview()
             }
-        } else {
-            startSearch(NoteSearch.Query(query))
+            return
         }
+        let summaries = Dictionary(uniqueKeysWithValues: store.summaries.map { ($0.id, $0) })
+        results = results.compactMap { result in
+            guard let summary = summaries[result.id] else { return nil }
+            return NoteSearchResult(summary: summary, score: result.score, excerpt: result.excerpt)
+        }
+        resultsRevision &+= 1
+        startSearch(parsed, delay: false)
     }
 
     func requestPreview(_ id: NoteID?) {
@@ -161,7 +158,7 @@ final class NotesSearchSession {
         clearPreview()
     }
 
-    private func startSearch(_ parsed: NoteSearch.Query) {
+    private func startSearch(_ parsed: NoteSearch.Query, delay: Bool = true) {
         searchTask?.cancel()
         searchWorker?.cancel()
         searchGeneration &+= 1
@@ -175,7 +172,7 @@ final class NotesSearchSession {
         let summaries = store.summaries
         let activeID = store.activeID
         let activeSource = store.source
-        let debounce = debounce
+        let debounce = delay ? debounce : .zero
         searchTask = Task { [weak self] in
             do {
                 try await Task.sleep(for: debounce)

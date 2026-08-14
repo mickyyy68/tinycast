@@ -108,7 +108,7 @@ final class NotesCoordinator {
     }
 
     func synchronizeSearch() {
-        search.updateSummaries()
+        search.refreshSummaries()
     }
 
     func applyEnabled() {
@@ -340,7 +340,7 @@ final class NotesCoordinator {
                 return
             }
             switcherSelection = renamedID
-            search.synchronize()
+            search.refreshSummaries()
             if renamedID == store.activeID,
                 windowVisibilityIntent.permitsCompletion(
                     capturedRevision: visibilityRevision,
@@ -389,7 +389,7 @@ final class NotesCoordinator {
                 afterRemoving: id,
                 from: switcherOrder,
                 fallback: store.activeID ?? store.summaries.first?.id)
-            search.synchronize()
+            search.refreshSummaries()
             guard windowVisibilityIntent.permitsCompletion(
                 capturedRevision: visibilityRevision,
                 isVisible: windowController.isVisible)
