@@ -13,7 +13,7 @@ struct NoteSwitcherView: View {
         }
         .onAppear(perform: focusSearch)
         .onChange(of: notes.switcherFocusRevision) { _, _ in focusSearch() }
-        .onChange(of: notes.visibleNotes.map(\.id)) { _, _ in
+        .onChange(of: notes.visibleNotes) { _, _ in
             notes.reconcileSwitcherSelection()
         }
         .onKeyPress(.downArrow) {

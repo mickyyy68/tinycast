@@ -330,6 +330,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   time plus file size for other notes; VoiceOver reaches row activation, Rename, and Trash separately
 - A long switcher list uses the custom thin scrollbar and edge dissolve, and disabled footer controls
   remain visibly dim without multiplying the inactive-panel opacity
+- Changing one nonempty switcher query to another leaves the prior rows selectable through the debounce,
+  then replaces them together with only the latest search result
 - The compact formatting pill, its grouped menus, keyboard navigation, every formatting action, and
   Command-B/I/K plus Shift-Command-X/7/8/9 update literal source and undo in one step
 - Moving the caret across formatting and switching notes updates selected fills without retaining the

@@ -157,7 +157,6 @@ final class NotesSearchSession {
         searchWorker?.cancel()
         searchGeneration &+= 1
         let generation = searchGeneration
-        results = []
         clearPreview()
         guard !parsed.isEmpty else {
             state = .idle

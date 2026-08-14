@@ -189,6 +189,8 @@ shows a blue Current marker and live character count; other rows show relative m
 file size. Rename owns its draft until Return commits or Escape cancels, suspends row arrows, and leaves
 native Command-Delete intact; that shortcut moves the selected note to Trash only outside rename.
 Rename and Trash use independent 24-point accessibility targets beside the row's default activation.
+While a replacement query is debouncing or searching, the prior complete rows remain in place instead
+of flashing an empty loading state; only the latest completed generation replaces them.
 The separate Search Notes command uses the main palette's
 Clipboard-style split: a 290-point date-sectioned title list, the shared vertical hairline, and a
 read-only rendered Markdown preview. Typed results drop date headers to preserve relevance order.

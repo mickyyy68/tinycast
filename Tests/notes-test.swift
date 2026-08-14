@@ -10,11 +10,53 @@ struct NotesTests {
         testMarkdownEditorModel()
         testSwitcherInteraction()
         testWindowLayout()
+        try await testSearchRetainsResultsUntilReplacement()
         try await testStoreCollectionAndExternalEdits()
         try await testCollectionMutationsRequireCleanDraft()
 
         print(failures == 0 ? "Notes tests passed" : "\(failures) tests failed")
         exit(failures == 0 ? 0 : 1)
+    }
+
+    private static func testSearchRetainsResultsUntilReplacement() async throws {
+        let root = temporaryRoot("search-session")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let repository = NotesRepository(applicationSupportDirectory: root)
+        let store = NotesStore(
+            repository: repository,
+            monitor: NoteFileMonitorProbe(),
+            loadSelection: { nil },
+            saveSelection: { _ in })
+        let search = NotesSearchSession(
+            store: store,
+            repository: repository,
+            debounce: .milliseconds(150))
+
+        _ = await store.create()
+        store.updateSource("alpha body")
+        await waitUntil { !store.isDirty && store.state == .ready }
+        let alphaID = try require(store.activeID)
+        _ = await store.create()
+        let untitledID = try require(store.activeID)
+        let betaID = try require(await store.rename(untitledID, to: "Beta"))
+
+        search.updateQuery("alpha")
+        await waitUntil { search.state == .ready }
+        check("the first search finds its matching note", search.results.map(\.id) == [alphaID])
+        let previousResults = search.results
+
+        search.updateQuery("Beta")
+        check("a replacement search enters the searching state", search.isSearching)
+        check(
+            "debouncing preserves the last complete result set",
+            search.results == previousResults && search.visibleNotes == previousResults.map(\.summary))
+        try? await Task.sleep(for: .milliseconds(30))
+        check(
+            "the previous rows remain usable throughout the debounce",
+            search.results == previousResults)
+
+        await waitUntil { search.state == .ready }
+        check("the latest search replaces results atomically", search.results.map(\.id) == [betaID])
     }
 
     private static func testSwitcherInteraction() {
