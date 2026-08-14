@@ -41,6 +41,7 @@ final class NotesCoordinator {
     private(set) var switcherSelection: NoteID?
     private(set) var switcherFocusRevision = 0
     private var switcherRename = NoteSwitcherRenameState()
+    private var windowVisibilityIntent = NoteWindowVisibilityIntent()
     private var restoresEditorAfterSearch = false
 
     init(
@@ -112,6 +113,7 @@ final class NotesCoordinator {
         let generation = enablementGeneration
         appIndex.setNotesCommandsVisible(settings.notesEnabled)
         guard !settings.notesEnabled else { return }
+        windowVisibilityIntent.supersede()
         pendingPresentation = nil
         loadTask?.cancel()
         loadTask = nil
@@ -166,6 +168,7 @@ final class NotesCoordinator {
     }
 
     func hide() {
+        windowVisibilityIntent.supersede()
         pendingPresentation = nil
         closeSwitcher(focusEditor: false)
         windowController.hide(restoreFocus: true)
@@ -238,6 +241,7 @@ final class NotesCoordinator {
 
     func select(_ id: NoteID) {
         guard operationTask == nil else { return }
+        let visibilityRevision = windowVisibilityIntent.revision
         operationTask = Task { [weak self] in
             guard let self else { return }
             let previousID = store.activeID
@@ -247,6 +251,10 @@ final class NotesCoordinator {
                 if !settings.notesEnabled { store.stop() }
                 return
             }
+            guard windowVisibilityIntent.permitsCompletion(
+                capturedRevision: visibilityRevision,
+                isVisible: windowController.isVisible)
+            else { return }
             closeSwitcher()
             showLoadedNote(
                 focusEditor: true,
@@ -298,6 +306,7 @@ final class NotesCoordinator {
 
     func rename(_ id: NoteID, to title: String) {
         guard operationTask == nil else { return }
+        let visibilityRevision = windowVisibilityIntent.revision
         operationTask = Task { [weak self] in
             guard let self else { return }
             let renamedID = await store.rename(id, to: title)
@@ -308,7 +317,11 @@ final class NotesCoordinator {
             }
             switcherSelection = renamedID
             search.synchronize()
-            if renamedID == store.activeID {
+            if renamedID == store.activeID,
+                windowVisibilityIntent.permitsCompletion(
+                    capturedRevision: visibilityRevision,
+                    isVisible: windowController.isVisible)
+            {
                 showLoadedNote(focusEditor: false, heightBehavior: .preserve)
             }
         }
@@ -332,6 +345,8 @@ final class NotesCoordinator {
         guard operationTask == nil,
             let title = store.summaries.first(where: { $0.id == id })?.title
         else { return }
+        let visibilityRevision = windowVisibilityIntent.revision
+        let switcherOrder = visibleNotes.map(\.id)
         operationTask = Task { [weak self] in
             guard let self else { return }
             let previousID = store.activeID
@@ -346,8 +361,15 @@ final class NotesCoordinator {
                 if !settings.notesEnabled { store.stop() }
                 return
             }
-            switcherSelection = store.activeID ?? store.summaries.first?.id
+            switcherSelection = NoteSwitcherSelection.replacement(
+                afterRemoving: id,
+                from: switcherOrder,
+                fallback: store.activeID ?? store.summaries.first?.id)
             search.synchronize()
+            guard windowVisibilityIntent.permitsCompletion(
+                capturedRevision: visibilityRevision,
+                isVisible: windowController.isVisible)
+            else { return }
             showLoadedNote(
                 focusEditor: !isSwitcherPresented,
                 heightBehavior: previousID == store.activeID ? .preserve : .fitContent)

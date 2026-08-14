@@ -85,6 +85,56 @@ struct NotesTests {
         check(
             "Command-Delete remains native in the editor",
             !NoteShortcutPolicy.handlesDelete(switcherPresented: false, renameActive: false))
+
+        var visibility = NoteWindowVisibilityIntent()
+        let capturedRevision = visibility.revision
+        check(
+            "an unchanged visible window accepts an operation completion",
+            visibility.permitsCompletion(capturedRevision: capturedRevision, isVisible: true))
+        visibility.supersede()
+        check(
+            "a newer window intent rejects an old operation completion",
+            !visibility.permitsCompletion(capturedRevision: capturedRevision, isVisible: true))
+        check(
+            "a hidden window rejects an operation completion",
+            !visibility.permitsCompletion(
+                capturedRevision: visibility.revision,
+                isVisible: false))
+
+        let first = NoteID(rawValue: "First.md")
+        let second = NoteID(rawValue: "Second.md")
+        let third = NoteID(rawValue: "Third.md")
+        let fallback = NoteID(rawValue: "Untitled.md")
+        check(
+            "Trash selects the next switcher row",
+            NoteSwitcherSelection.replacement(
+                afterRemoving: second,
+                from: [first, second, third],
+                fallback: fallback) == third)
+        check(
+            "Trash selects the next row when removing the first one",
+            NoteSwitcherSelection.replacement(
+                afterRemoving: first,
+                from: [first, second, third],
+                fallback: fallback) == second)
+        check(
+            "Trash selects the previous row when removing the last one",
+            NoteSwitcherSelection.replacement(
+                afterRemoving: third,
+                from: [first, second, third],
+                fallback: fallback) == second)
+        check(
+            "Trash uses the post-operation fallback when no row remains",
+            NoteSwitcherSelection.replacement(
+                afterRemoving: first,
+                from: [first],
+                fallback: fallback) == fallback)
+        check(
+            "Trash uses the fallback when the removed note is not in the visible order",
+            NoteSwitcherSelection.replacement(
+                afterRemoving: fallback,
+                from: [first, second, third],
+                fallback: second) == second)
     }
 
     private static func testRepositoryAndSearch() throws {

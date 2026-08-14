@@ -87,7 +87,9 @@ The optional Notes menu-bar item is a direct entry point, not a second notes sur
 Command-N uses the create path and Command-P opens the compact switcher. Escape first cancels an inline
 rename without closing the switcher; otherwise it closes one layer per press: the switcher, expanded
 formatting, then the panel. Command-W and the leading Hide control hide directly. Hiding restores the
-prior external application or Tinycast window and flushes without delaying the order-out.
+prior external application or Tinycast window and flushes without delaying the order-out. It also
+invalidates the panel-presentation revision captured by an in-flight selection, rename, or Trash action;
+those file operations may finish, but their stale completion cannot reopen or focus the panel.
 
 The 520-point editor surface retains a 320-point minimum and grows to the smaller of 840 points or the
 display height minus two 16-point margins. Its fixed header keeps the display-only active title exactly
@@ -120,7 +122,9 @@ Return opens the selected note. Inline rename coordinates the file move; Escape 
 row navigation pauses until the field is committed or cancelled. Command-Delete belongs to the
 non-renaming switcher only, while the editor and rename field retain native text deletion. The shortcut
 or row action confirms through `DialogController`, then moves the file through
-`FileManager.trashItem` after a revision check. Deleting the last note creates a fresh Untitled note.
+`FileManager.trashItem` after a revision check. After removal the switcher keeps spatial continuity by
+selecting the surviving next row, then the previous row, then the active or first note. Deleting the last
+note creates a fresh Untitled note.
 
 ## Search palette
 

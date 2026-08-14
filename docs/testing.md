@@ -332,6 +332,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   remain visibly dim without multiplying the inactive-panel opacity
 - Changing one nonempty switcher query to another leaves the prior rows selectable through the debounce,
   then replaces them together with only the latest search result
+- Hide during Select, Rename, and the Trash confirmation; each operation may finish, but the panel stays
+  hidden even after a later reopen, and Trash selects next, then previous, then its fallback row
 - The compact formatting pill, its grouped menus, keyboard navigation, every formatting action, and
   Command-B/I/K plus Shift-Command-X/7/8/9 update literal source and undo in one step
 - Moving the caret across formatting and switching notes updates selected fills without retaining the

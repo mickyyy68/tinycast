@@ -191,6 +191,8 @@ native Command-Delete intact; that shortcut moves the selected note to Trash onl
 Rename and Trash use independent 24-point accessibility targets beside the row's default activation.
 While a replacement query is debouncing or searching, the prior complete rows remain in place instead
 of flashing an empty loading state; only the latest completed generation replaces them.
+Trash keeps selection on the surviving next row, or the previous row when the removed note was last.
+Hiding during Select, Rename, or Trash lets the file operation complete without resurrecting the panel.
 The separate Search Notes command uses the main palette's
 Clipboard-style split: a 290-point date-sectioned title list, the shared vertical hairline, and a
 read-only rendered Markdown preview. Typed results drop date headers to preserve relevance order.
