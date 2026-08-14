@@ -102,7 +102,7 @@ dirty, and saving status follows that emphasis, while failure and conflict remai
 actionable beside the title.
 
 The fixed 54-point footer centers the canonical character count, formatting controls, and expanded pill
-on one vertical axis with 12 points around circular controls and 8 around the pill. Expanded formatting
+on one vertical axis with 12 points around circular controls and 10 around the 34-point pill. Expanded formatting
 is a persisted per-channel presentation choice and uses a grouped pill plus a separate close circle. The
 floating switcher keeps the editor mounted beneath it and leaves either footer state visible but
 disabled at the dedicated control opacity. Its fixed search row has one plain `xmark` Close action and a custom
@@ -180,6 +180,8 @@ expanded choice. Family menus appear and close without animation, and selected f
 formatting capsule's rounded geometry; pointer hover uses the shared menu highlight. Each family menu anchors to its own trigger without assuming a
 fixed menu height; Up opens it from the last item and Down from the first. Command-B, Command-I,
 Command-K, Shift-Command-X, and Shift-Command-7/8/9 use the same source-edit planner.
+The pill's resting artwork uses the shared secondary text color; hover, keyboard focus, selection, and
+expansion brighten only the owning control while retaining the shared selection fill.
 
 Return continues bullets, numbered items, and tasks, with new tasks unchecked. Return on an empty item
 or Backspace at its content boundary removes the list marker; Tab and Shift-Tab nest and outdent list

@@ -342,6 +342,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Selected formatting fills remain inside the capsule; family menus appear and close without animation,
   pointer hover uses the menu highlight, Up and Down open them from opposite ends, and one focus ring
   follows trigger-to-row navigation
+- The 34-point formatting pill stays centered with its close control; resting artwork is uniformly
+  muted, and only hover, focus, selection, or expansion brightens the owning control
 - Applying several formatting actions keeps the pill open; its close circle and Escape collapse it,
   while an outside click does not
 - Opening each formatting family menu leaves the toolbar center and panel frame stationary; verify its

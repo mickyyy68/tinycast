@@ -7,6 +7,7 @@ struct NoteFormattingMenu: View {
     @FocusState private var focused: FocusTarget?
     @State private var expandedGroup: FormatGroup?
     @State private var hoveredCommand: NoteMarkdownCommand?
+    @State private var hoveredToolbarTarget: FocusTarget?
 
     var body: some View {
         toolbar
@@ -16,6 +17,7 @@ struct NoteFormattingMenu: View {
                         expandedGroup = nil
                         focused = nil
                         hoveredCommand = nil
+                        hoveredToolbarTarget = nil
                     }
                     return
                 }
@@ -29,7 +31,7 @@ struct NoteFormattingMenu: View {
     }
 
     private var toolbar: some View {
-        HStack(spacing: Theme.Spacing.xs) {
+        HStack(spacing: Theme.Spacing.xxs) {
             groupButton(.heading)
             groupButton(.style)
             commandButton(Item(.link, "Link", "link"))
@@ -42,7 +44,8 @@ struct NoteFormattingMenu: View {
             separator
             groupButton(.list)
         }
-        .padding(Theme.Spacing.xs)
+        .padding(.horizontal, Theme.Spacing.xs)
+        .padding(.vertical, Theme.Spacing.xxs)
         .frosted(in: Capsule())
     }
 
@@ -53,7 +56,9 @@ struct NoteFormattingMenu: View {
     }
 
     private func groupButton(_ group: FormatGroup) -> some View {
-        Button {
+        let target = FocusTarget.command(group.representative)
+        let selected = group.isSelected(in: selectedCommands)
+        return Button {
             withoutAnimation {
                 expandedGroup = expandedGroup == group ? nil : group
                 focused = .command(group.representative)
@@ -64,20 +69,20 @@ struct NoteFormattingMenu: View {
                     SymbolImage(name: symbol, size: Theme.Size.noteStatus)
                 } else {
                     Text(group.label)
-                        .font(.caption.weight(.semibold))
+                        .font(Theme.Typography.noteFormattingLabel)
                 }
                 SymbolImage(name: "chevron.down", size: Theme.Spacing.md)
-                    .foregroundStyle(Theme.Colors.textSecondary)
             }
+            .foregroundStyle(toolbarForeground(target, selected: selected))
             .frame(
-                width: Theme.Size.noteHeaderButton + Theme.Spacing.lg,
+                width: Theme.Size.noteHeaderButton + Theme.Spacing.sm,
                 height: Theme.Size.noteHeaderButton)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .background(
             toolbarButtonBackground(
-                expandedGroup == group || group.isSelected(in: selectedCommands)))
+                expandedGroup == group || selected))
         .overlay(groupFocusBorder(group))
         .overlay(alignment: group == .list ? .bottomTrailing : .bottomLeading) {
             if expandedGroup == group {
@@ -87,13 +92,16 @@ struct NoteFormattingMenu: View {
             }
         }
         .focused($focused, equals: .command(group.representative))
+        .onHover { hovered in updateToolbarHover(target, hovered: hovered) }
         .help(group.title)
         .accessibilityLabel(group.title)
         .accessibilityAddTraits(group.isSelected(in: selectedCommands) ? .isSelected : [])
     }
 
     private func commandButton(_ item: Item) -> some View {
-        Button {
+        let target = FocusTarget.command(item.command)
+        let selected = selectedCommands.contains(item.command)
+        return Button {
             withoutAnimation {
                 expandedGroup = nil
                 focused = .command(item.command)
@@ -101,15 +109,17 @@ struct NoteFormattingMenu: View {
             onSelect(item.command)
         } label: {
             SymbolImage(name: item.symbol ?? "textformat", size: Theme.Size.noteStatus)
+                .foregroundStyle(toolbarForeground(target, selected: selected))
                 .frame(
                     width: Theme.Size.noteHeaderButton,
                     height: Theme.Size.noteHeaderButton)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .background(toolbarButtonBackground(selectedCommands.contains(item.command)))
+        .background(toolbarButtonBackground(selected))
         .overlay(toolbarFocusBorder(.command(item.command)))
         .focused($focused, equals: .command(item.command))
+        .onHover { hovered in updateToolbarHover(target, hovered: hovered) }
         .help(item.label)
         .accessibilityLabel(item.label)
         .accessibilityAddTraits(selectedCommands.contains(item.command) ? .isSelected : [])
@@ -173,6 +183,20 @@ struct NoteFormattingMenu: View {
     private func toolbarButtonBackground(_ selected: Bool) -> some View {
         Capsule()
             .fill(selected ? Theme.Colors.selection : .clear)
+    }
+
+    private func toolbarForeground(_ target: FocusTarget, selected: Bool) -> Color {
+        let focusedTarget = focused.map(normalizedToolbarTarget)
+        let emphasized = selected || hoveredToolbarTarget == target || focusedTarget == target
+        return emphasized ? .primary : Theme.Colors.textSecondary
+    }
+
+    private func updateToolbarHover(_ target: FocusTarget, hovered: Bool) {
+        if hovered {
+            hoveredToolbarTarget = target
+        } else if hoveredToolbarTarget == target {
+            hoveredToolbarTarget = nil
+        }
     }
 
     private func groupFocusBorder(_ group: FormatGroup) -> some View {

@@ -173,7 +173,7 @@ panel's top edge unless a screen margin requires it. Screens shorter than the 32
 use their visible height as the emergency minimum and clamp restored frames before positioning; the panel
 width remains 520 points. The 54-point footer centers the canonical character
 count and its controls 27 points above the panel edge. Its 30-point circles have 12 points above and
-below; the 38-point expanded formatting pill has 8 and shares the same center with its separate close
+below; the 34-point expanded formatting pill has 10 and shares the same center with its separate close
 control. Heading, emphasis, and list families open upward without moving the toolbar. Commands restore
 editor focus without dismissing the pill. Family menus appear and close immediately without a scale or
 opacity transition, anchor to their own trigger without a hand-computed height, and keep one focus ring
@@ -181,6 +181,10 @@ between trigger and row. Up opens a family from its last item and Down from its 
 the capsule's own rounded geometry and follow the active editor epoch, caret, and source. Expansion
 persists per app channel across window hiding and relaunch; the close control or Escape collapses it,
 while outside clicks do not.
+
+The formatting pill uses 30-point action slots, 36-point family slots, and 2-point inter-control
+spacing. Resting artwork uses the secondary text color; hover, focus, selection, and expansion promote
+the owning control to primary while the shared selection fill continues to report active formatting.
 
 The compact switcher is a glass floating control over the still-mounted editor and never changes the
 frame. Exposed editor clicks dismiss it; the editor cannot receive edits while it is open. The footer
