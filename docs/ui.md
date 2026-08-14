@@ -150,7 +150,8 @@ footer formatting pill use the shared frosted interactive glass.
 
 `NotesWindowController` owns every frame change. TextKit 2 supplies the laid-out editor height, the
 controller adds the header and footer, and tracks content in both directions between the 320-point
-minimum and the smaller of 840 points or the display height minus two 16-point margins. The top edge
+minimum and the smaller of 840 points or the display height minus two 16-point margins when the visible
+height is at least 352 points. Below that threshold the margins yield to reachability. The top edge
 stays fixed unless a screen margin must win; after the cap, the native editor scrolls internally. A
 minimum-height session preserves its initial editor breathing room, so the first laid-out line grows
 the panel immediately and deletion can shrink it to the floor. Replacement documents report after
@@ -171,7 +172,7 @@ focus loss leaves it visible.
 The editor is one native TextKit 2 surface backed by a literal-source/display projection. Inactive
 Markdown markers occupy no layout width; entering a construct reveals its source without moving the
 panel's top edge unless a screen margin requires it. Screens shorter than the 320-point normal minimum
-use their visible height as the emergency minimum and clamp restored frames before positioning; the panel
+use their visible height as the effective minimum and clamp restored frames before positioning; the panel
 width remains 520 points. The 54-point footer centers the canonical character
 count and its controls 27 points above the panel edge. Its 30-point circles have 12 points above and
 below; the 34-point expanded formatting pill has 10 and shares the same center with its separate close

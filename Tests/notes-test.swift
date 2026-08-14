@@ -846,6 +846,13 @@ struct NotesTests {
             shortVisible,
             metrics: metrics)
         check("the minimum wins when both margins cannot fit", shortConstraint == shortVisible)
+        let marginBoundary = CGRect(x: 0, y: 0, width: 1_200, height: 352)
+        let boundaryConstraint = NoteWindowLayout.constrainedVisibleFrame(
+            marginBoundary,
+            metrics: metrics)
+        check(
+            "the exact margin threshold preserves both screen margins",
+            boundaryConstraint.minY == 16 && boundaryConstraint.maxY == 336)
         let shortFrame = NoteWindowLayout.initialFrame(
             visibleFrame: shortConstraint,
             height: 320,

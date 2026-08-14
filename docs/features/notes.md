@@ -94,8 +94,8 @@ focus the panel. Leaving or dismissing Search Notes invalidates its pending open
 restoring a previously suspended editor.
 
 The 520-point editor surface retains a 320-point minimum and grows to the smaller of 840 points or the
-display height minus two 16-point margins. On an emergency display shorter than 320 points, reachability
-wins: the complete panel clamps to the visible height while retaining its fixed 520-point width. Its
+display height minus two 16-point margins. Below 352 points, reachability wins over those margins; below
+320 points, the complete panel clamps to the visible height while retaining its fixed 520-point width. Its
 fixed header keeps the display-only active title exactly
 centered, with one leading Hide circle and Reveal, Switcher, and Create in one trailing capsule. Header
 and footer chrome use a 16-point horizontal gutter, remain visible, dim to 35% only while the pointer and

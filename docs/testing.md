@@ -373,8 +373,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   exact Markdown and ordinary clicks only reveal source
 - The panel starts no shorter than 320 points, tracks content downward without moving its header when
   margins permit, stops at 840 points or 16 points from both screen edges, then scrolls
-- Below a 320-point visible screen height, initial and restored frames clamp to the entire visible height,
-  remain vertically reachable, and retain the fixed 520-point width; exactly 320 and above keep the floor
+- Below a 352-point visible screen height, the 16-point edge margins yield to reachability; below 320,
+  initial and restored frames clamp to the entire visible height while retaining the fixed 520-point width
 - With Notes inactive, loading/dirty/saving status dims with the header while failure/conflict remains
   fully opaque and actionable
 - Adding a laid-out line grows even a minimum-height panel immediately instead of consuming its initial
