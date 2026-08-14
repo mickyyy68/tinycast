@@ -275,6 +275,14 @@ private struct NoteSwitcherRow: View {
             guard !editing else { return }
             onActivate()
         }
+        .accessibilityAction(named: "Rename (summary.title)") {
+            guard !editing else { return }
+            onBeginRename()
+        }
+        .accessibilityAction(named: "Move (summary.title) to Trash") {
+            guard !editing else { return }
+            onTrash()
+        }
         .onChange(of: editing) { _, editing in
             if editing {
                 Task { @MainActor in

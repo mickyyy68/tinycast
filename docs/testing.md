@@ -327,7 +327,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Focusing and typing in the switcher does not move its prompt; the fixed trailing Close action dismisses
   it with the same plain `xmark` as formatting dismissal, and no query-dependent Clear action appears
 - Switcher rows show a blue Current marker plus live character count for the active note and modification
-  time plus file size for other notes; VoiceOver reaches row activation, Rename, and Trash separately
+  time plus file size for other notes; VoiceOver reaches row activation, Rename, and Trash separately on
+  an unselected row without requiring pointer hover
 - A long switcher list uses the custom thin scrollbar and compact edge dissolve; scroll to both ends and
   verify complete first and final rows remain legible, while disabled footer controls remain visibly dim
   without multiplying the inactive-panel opacity
