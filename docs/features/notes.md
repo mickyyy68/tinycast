@@ -157,7 +157,9 @@ edit maps through ordered identity, elision, and replacement segments before one
 updates the store. Copy and Cut use source ranges. The editor epoch changes on note switches and clean
 external reloads, clearing its custom native undo manager before a new source is installed; ordinary
 view updates preserve undo. Height reports wait for replacement layout and carry that epoch, so a stale
-document cannot resize the active note. Marked-text composition freezes projection until commit.
+document cannot resize the active note. Formatting reports carry the same identity and epoch, keeping
+the expanded toolbar aligned with caret moves and source edits in only the active note. Marked-text
+composition freezes projection until commit.
 
 The footer's `textformat` control opens a Tinycast-owned compact glass formatting pill. Heading,
 emphasis, and list controls are grouped and open small menus above the pill; link, inline code, fenced
@@ -165,8 +167,9 @@ code, quote, and horizontal rule remain direct actions. Applying a command keeps
 restores editor focus. The separate close circle or Escape collapses it; outside clicks do not. Opening
 the switcher closes any family menu and disables the mounted pill without changing its persisted
 expanded choice. Family menus appear and close without animation, and selected fills follow the
-formatting capsule's rounded geometry. Command-B, Command-I, Command-K, Shift-Command-X, and
-Shift-Command-7/8/9 use the same source-edit planner.
+formatting capsule's rounded geometry. Each family menu anchors to its own trigger without assuming a
+fixed menu height; Up opens it from the last item and Down from the first. Command-B, Command-I,
+Command-K, Shift-Command-X, and Shift-Command-7/8/9 use the same source-edit planner.
 
 Return continues bullets, numbered items, and tasks, with new tasks unchecked. Return on an empty item
 or Backspace at its content boundary removes the list marker; Tab and Shift-Tab nest and outdent list

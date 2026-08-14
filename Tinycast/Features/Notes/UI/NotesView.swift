@@ -34,6 +34,7 @@ struct NotesView: View {
                 input: notes.editorInput,
                 onSourceChange: notes.updateSource,
                 onContentHeightChange: notes.updateEditorHeight,
+                onFormattingStateChange: notes.updateFormattingState,
                 onReady: notes.editorReady,
                 onOpenLink: notes.openLink)
                 .allowsHitTesting(!notes.isSwitcherPresented)

@@ -173,9 +173,11 @@ count and its controls 27 points above the panel edge. Its 30-point circles have
 below; the 38-point expanded formatting pill has 8 and shares the same center with its separate close
 control. Heading, emphasis, and list families open upward without moving the toolbar. Commands restore
 editor focus without dismissing the pill. Family menus appear and close immediately without a scale or
-opacity transition, and selected fills use the capsule's own rounded geometry. Expansion persists per
-app channel across window hiding and relaunch; the close control or Escape collapses it, while outside
-clicks do not.
+opacity transition, anchor to their own trigger without a hand-computed height, and keep one focus ring
+between trigger and row. Up opens a family from its last item and Down from its first. Selected fills use
+the capsule's own rounded geometry and follow the active editor epoch, caret, and source. Expansion
+persists per app channel across window hiding and relaunch; the close control or Escape collapses it,
+while outside clicks do not.
 
 The compact switcher is a glass floating control over the still-mounted editor and never changes the
 frame. Exposed editor clicks dismiss it; the editor cannot receive edits while it is open. The footer

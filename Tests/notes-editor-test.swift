@@ -13,6 +13,7 @@ struct NotesEditorTests {
         testCaretAnchoringAcrossProjectionChanges()
         testNewlineReportsGrowingContentHeight()
         await testSwitchingReportsUpdatedContentHeight()
+        testFormattingStateReportsFollowEditorState()
         testBottomEditingPreservesViewport()
         testTaskOverlayLifetime()
         print(failures == 0 ? "Notes editor tests passed" : "\(failures) tests failed")
@@ -29,6 +30,7 @@ struct NotesEditorTests {
                 epoch: 1),
             onSourceChange: { changes.append($0) },
             onContentHeightChange: { _, _ in },
+            onFormattingStateChange: { _, _ in },
             onReady: { _ in },
             onOpenLink: { _ in })
         let coordinator = NoteEditorView.Coordinator(parent: view)
@@ -300,6 +302,7 @@ struct NotesEditorTests {
             input: input,
             onSourceChange: { _ in },
             onContentHeightChange: { _, _ in },
+            onFormattingStateChange: { _, _ in },
             onReady: { _ in },
             onOpenLink: { _ in })
         let coordinator = NoteEditorView.Coordinator(parent: view)
@@ -352,6 +355,7 @@ struct NotesEditorTests {
                 guard let panel else { return }
                 panel.setFrame(panel.frame, display: true, animate: false)
             },
+            onFormattingStateChange: { _, _ in },
             onReady: { _ in },
             onOpenLink: { _ in })
         let coordinator = NoteEditorView.Coordinator(parent: view)
@@ -408,6 +412,7 @@ struct NotesEditorTests {
             input: input,
             onSourceChange: { _ in },
             onContentHeightChange: { _, height in heights.append(height) },
+            onFormattingStateChange: { _, _ in },
             onReady: { _ in },
             onOpenLink: { _ in })
         let coordinator = NoteEditorView.Coordinator(parent: view)
@@ -449,6 +454,7 @@ struct NotesEditorTests {
             input: short,
             onSourceChange: { _ in },
             onContentHeightChange: recordHeight,
+            onFormattingStateChange: { _, _ in },
             onReady: { _ in },
             onOpenLink: { _ in })
         let coordinator = NoteEditorView.Coordinator(parent: view)
@@ -471,6 +477,7 @@ struct NotesEditorTests {
             input: long,
             onSourceChange: { _ in },
             onContentHeightChange: recordHeight,
+            onFormattingStateChange: { _, _ in },
             onReady: { _ in },
             onOpenLink: { _ in })
         let reportCount = heights.count
@@ -492,6 +499,7 @@ struct NotesEditorTests {
             input: shortAgain,
             onSourceChange: { _ in },
             onContentHeightChange: recordHeight,
+            onFormattingStateChange: { _, _ in },
             onReady: { _ in },
             onOpenLink: { _ in })
         coordinator.update(shortAgain)
@@ -500,6 +508,63 @@ struct NotesEditorTests {
         check(
             "switching back to a short note reports its smaller laid-out height",
             shortAgainHeight < longHeight)
+    }
+
+    private static func testFormattingStateReportsFollowEditorState() {
+        var reports: [(NoteEditorInput, Set<NoteMarkdownCommand>)] = []
+        let bold = NoteEditorInput(
+            id: NoteID(rawValue: "Bold.md"),
+            source: "**bold** plain",
+            epoch: 1)
+        let report: (NoteEditorInput, Set<NoteMarkdownCommand>) -> Void = {
+            reports.append(($0, $1))
+        }
+        let view = NoteEditorView(
+            input: bold,
+            onSourceChange: { _ in },
+            onContentHeightChange: { _, _ in },
+            onFormattingStateChange: report,
+            onReady: { _ in },
+            onOpenLink: { _ in })
+        let coordinator = NoteEditorView.Coordinator(parent: view)
+        let textView = NoteTextView(usingTextLayoutManager: true)
+        NoteTextStyler.configure(textView, editable: true)
+        coordinator.textView = textView
+        coordinator.install(bold, resetUndo: false)
+        textView.setSelectedRange(NSRange(location: 1, length: 0))
+        coordinator.textViewDidChangeSelection(
+            Notification(name: NSTextView.didChangeSelectionNotification, object: textView))
+        check(
+            "formatting reports follow the caret into bold source",
+            reports.last?.1.contains(.bold) == true)
+
+        let plain = NoteEditorInput(
+            id: NoteID(rawValue: "Plain.md"),
+            source: "plain",
+            epoch: 2)
+        coordinator.parent = NoteEditorView(
+            input: plain,
+            onSourceChange: { _ in },
+            onContentHeightChange: { _, _ in },
+            onFormattingStateChange: report,
+            onReady: { _ in },
+            onOpenLink: { _ in })
+        coordinator.update(plain)
+        check(
+            "document switches identify the authoritative formatting report",
+            reports.last?.0.id == plain.id && reports.last?.0.epoch == plain.epoch)
+        check(
+            "document switches replace the previous note's formatting state",
+            reports.last?.1 == [.normal])
+
+        textView.setSelectedRange(NSRange(location: 0, length: 5))
+        coordinator.textViewDidChangeSelection(
+            Notification(name: NSTextView.didChangeSelectionNotification, object: textView))
+        let reportCount = reports.count
+        coordinator.noteTextView(textView, perform: .bold)
+        check(
+            "source edits publish a new resulting formatting state",
+            reports.count > reportCount && reports.last?.1.contains(.bold) == true)
     }
 
     private static func testCanonicalCopyAndCut() {
@@ -513,6 +578,7 @@ struct NotesEditorTests {
             input: input,
             onSourceChange: { changes.append($0) },
             onContentHeightChange: { _, _ in },
+            onFormattingStateChange: { _, _ in },
             onReady: { _ in },
             onOpenLink: { _ in })
         let coordinator = NoteEditorView.Coordinator(parent: view)

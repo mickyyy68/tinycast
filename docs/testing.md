@@ -328,10 +328,14 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   time plus file size for other notes
 - The compact formatting pill, its grouped menus, keyboard navigation, every formatting action, and
   Command-B/I/K plus Shift-Command-X/7/8/9 update literal source and undo in one step
-- Selected formatting fills remain inside the capsule; family menus appear and close without animation
+- Moving the caret across formatting and switching notes updates selected fills without retaining the
+  previous note's state
+- Selected formatting fills remain inside the capsule; family menus appear and close without animation,
+  Up and Down open them from opposite ends, and one focus ring follows trigger-to-row navigation
 - Applying several formatting actions keeps the pill open; its close circle and Escape collapse it,
   while an outside click does not
-- Opening each formatting family menu leaves the toolbar center and panel frame stationary
+- Opening each formatting family menu leaves the toolbar center and panel frame stationary; verify its
+  trigger alignment with larger text sizes
 - Formatting expansion survives hide/show and a fresh Dev relaunch; opening the switcher closes an open
   family menu without changing that preference
 - Return continues bullets, numbers, and tasks; an empty item exits, and Tab/Shift-Tab nest and outdent

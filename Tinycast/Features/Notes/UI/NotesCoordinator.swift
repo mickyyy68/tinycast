@@ -409,11 +409,19 @@ final class NotesCoordinator {
         windowController.updateEditorHeight(height)
     }
 
+    func updateFormattingState(
+        _ input: NoteEditorInput,
+        _ commands: Set<NoteMarkdownCommand>
+    ) {
+        let current = editorInput
+        guard isFormattingExpanded, input.id == current.id, input.epoch == current.epoch,
+            commands != activeFormattingCommands
+        else { return }
+        activeFormattingCommands = commands
+    }
+
     func editorReady(_ textView: NoteTextView) {
         windowController.editorReady(textView)
-        if isFormattingExpanded {
-            activeFormattingCommands = windowController.formattingState()
-        }
         synchronizeFormattingInteraction()
     }
 
@@ -516,9 +524,6 @@ final class NotesCoordinator {
             activate: activate,
             resizeAnchor: resizeAnchor,
             heightBehavior: heightBehavior)
-        if isFormattingExpanded {
-            activeFormattingCommands = windowController.formattingState()
-        }
         synchronizeFormattingInteraction()
     }
 

@@ -23,7 +23,8 @@ struct NotesEditorPerformance {
         let view = NoteEditorView(
             input: input,
             onSourceChange: { _ in },
-        onContentHeightChange: { _, _ in },
+            onContentHeightChange: { _, _ in },
+            onFormattingStateChange: { _, _ in },
             onReady: { _ in },
             onOpenLink: { _ in })
         let coordinator = NoteEditorView.Coordinator(parent: view)

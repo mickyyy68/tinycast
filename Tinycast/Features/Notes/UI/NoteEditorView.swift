@@ -5,6 +5,7 @@ struct NoteEditorView: NSViewRepresentable {
     let input: NoteEditorInput
     let onSourceChange: (String) -> Void
     let onContentHeightChange: (NoteEditorInput, CGFloat) -> Void
+    let onFormattingStateChange: (NoteEditorInput, Set<NoteMarkdownCommand>) -> Void
     let onReady: (NoteTextView) -> Void
     let onOpenLink: (String) -> Void
 
@@ -107,6 +108,7 @@ struct NoteEditorView: NSViewRepresentable {
             }
             if resetUndo { editorUndoManager.removeAllActions() }
             applyProjection()
+            reportFormattingState()
         }
 
         func update(_ next: NoteEditorInput) {
@@ -145,6 +147,7 @@ struct NoteEditorView: NSViewRepresentable {
             guard !isApplyingProjection, !isComposing, let textView else { return }
             revealedSelectionLocation = nil
             sourceSelection = projection.sourceRange(forDisplayRange: textView.selectedRange())
+            reportFormattingState()
             guard sourceSelection.length == 0 else { return }
             let next = Signposts.interval("NoteEditor.project") {
                 NoteDisplayProjection.build(
@@ -169,6 +172,15 @@ struct NoteEditorView: NSViewRepresentable {
                 textView.setFrameSize(NSSize(width: textView.frame.width, height: height))
             }
             parent.onContentHeightChange(input, height)
+        }
+
+        func reportFormattingState() {
+            parent.onFormattingStateChange(
+                input,
+                NoteMarkdownEditing.activeCommands(
+                    selection: sourceSelection,
+                    source: source,
+                    presentation: presentation))
         }
 
         func scheduleHeightReport(for expectedInput: NoteEditorInput) {
@@ -277,6 +289,7 @@ struct NoteEditorView: NSViewRepresentable {
             }
             applyProjection()
             reportHeight()
+            reportFormattingState()
         }
 
         func noteTextViewWillBeginComposition(_ textView: NoteTextView) {
@@ -381,6 +394,7 @@ struct NoteEditorView: NSViewRepresentable {
                     replacement: replacement))
             parent.onSourceChange(source)
             reportHeight()
+            reportFormattingState()
         }
 
         private func selectSourceRange(_ range: NSRange, reveal: Bool) {
@@ -397,6 +411,7 @@ struct NoteEditorView: NSViewRepresentable {
             }
             applyProjection()
             reportHeight()
+            reportFormattingState()
         }
 
         private func applyProjection(patch: DisplayPatch? = nil) {
