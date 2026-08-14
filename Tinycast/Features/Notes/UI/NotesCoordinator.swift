@@ -282,6 +282,7 @@ final class NotesCoordinator {
 
     func openSearchResult(_ id: NoteID) {
         guard settings.notesEnabled, operationTask == nil else { return }
+        let visibilityRevision = windowVisibilityIntent.revision
         operationTask = Task { [weak self] in
             guard let self else { return }
             let previousID = store.activeID
@@ -291,6 +292,9 @@ final class NotesCoordinator {
                 if !settings.notesEnabled { store.stop() }
                 return
             }
+            guard windowVisibilityIntent.permitsPresentation(
+                capturedRevision: visibilityRevision)
+            else { return }
             restoresEditorAfterSearch = false
             search.cancel()
             paletteCoordinator.hidePalette(restoreFocus: false)
@@ -303,6 +307,7 @@ final class NotesCoordinator {
 
     func paletteDidDismiss(_ mode: PaletteMode, restoreFocus: Bool) -> Bool {
         guard mode == .notesSearch else { return false }
+        windowVisibilityIntent.supersede()
         search.cancel()
         guard restoresEditorAfterSearch, settings.notesEnabled, store.hasLoadedDocument else {
             restoresEditorAfterSearch = false
@@ -317,6 +322,7 @@ final class NotesCoordinator {
     }
 
     func leaveSearchPalette() {
+        windowVisibilityIntent.supersede()
         restoresEditorAfterSearch = false
         windowController.abandonSuspension()
         search.cancel()
@@ -500,7 +506,7 @@ final class NotesCoordinator {
                 }
                 loadTask = nil
                 guard created, settings.notesEnabled, !Task.isCancelled else { return }
-                let next = pendingPresentation
+                guard let next = pendingPresentation else { return }
                 pendingPresentation = nil
                 if next == .searchPalette {
                     await present(.searchPalette)
@@ -533,7 +539,11 @@ final class NotesCoordinator {
                 heightBehavior: windowController.isVisible || windowController.isSuspended
                     ? .preserve : .fitContent)
         case .create:
-            guard await store.create() else { return }
+            let visibilityRevision = windowVisibilityIntent.revision
+            guard await store.create(), settings.notesEnabled, !Task.isCancelled,
+                windowVisibilityIntent.permitsPresentation(
+                    capturedRevision: visibilityRevision)
+            else { return }
             closeSwitcher()
             showLoadedNote(focusEditor: true, heightBehavior: .fitContent)
         case .searchPalette:

@@ -91,10 +91,16 @@ struct NotesTests {
         check(
             "an unchanged visible window accepts an operation completion",
             visibility.permitsCompletion(capturedRevision: capturedRevision, isVisible: true))
+        check(
+            "an unchanged presentation accepts an async open completion",
+            visibility.permitsPresentation(capturedRevision: capturedRevision))
         visibility.supersede()
         check(
             "a newer window intent rejects an old operation completion",
             !visibility.permitsCompletion(capturedRevision: capturedRevision, isVisible: true))
+        check(
+            "a newer presentation rejects an old async open completion",
+            !visibility.permitsPresentation(capturedRevision: capturedRevision))
         check(
             "a hidden window rejects an operation completion",
             !visibility.permitsCompletion(

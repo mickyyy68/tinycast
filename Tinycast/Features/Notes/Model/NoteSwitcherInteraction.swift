@@ -45,6 +45,10 @@ struct NoteWindowVisibilityIntent: Sendable, Equatable {
     func permitsCompletion(capturedRevision: Int, isVisible: Bool) -> Bool {
         isVisible && capturedRevision == revision
     }
+
+    func permitsPresentation(capturedRevision: Int) -> Bool {
+        capturedRevision == revision
+    }
 }
 
 enum NoteSwitcherSelection {

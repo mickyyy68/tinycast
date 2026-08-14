@@ -88,15 +88,17 @@ Command-N uses the create path and Command-P opens the compact switcher. Escape 
 rename without closing the switcher; otherwise it closes one layer per press: the switcher, expanded
 formatting, then the panel. Command-W and the leading Hide control hide directly. Hiding restores the
 prior external application or Tinycast window and flushes without delaying the order-out. It also
-invalidates the panel-presentation revision captured by an in-flight selection, rename, or Trash action;
-those file operations may finish, but their stale completion cannot reopen or focus the panel.
+invalidates the panel-presentation revision captured by an in-flight selection, rename, Trash, Create,
+or Search Notes open; those file operations may finish, but their stale completion cannot reopen or
+focus the panel. Leaving or dismissing Search Notes invalidates its pending open before optionally
+restoring a previously suspended editor.
 
 The 520-point editor surface retains a 320-point minimum and grows to the smaller of 840 points or the
 display height minus two 16-point margins. On an emergency display shorter than 320 points, reachability
 wins: the complete panel clamps to the visible height while retaining its fixed 520-point width. Its
 fixed header keeps the display-only active title exactly
 centered, with one leading Hide circle and Reveal, Switcher, and Create in one trailing capsule. Header
-and footer chrome use a 12-point horizontal gutter, remain visible, dim to 35% only while the pointer and
+and footer chrome use a 16-point horizontal gutter, remain visible, dim to 35% only while the pointer and
 keyboard focus are both outside, and brighten without moving. Clean Saved is always hidden; loading,
 dirty, and saving status follows that emphasis, while failure and conflict remain fully opaque and
 actionable beside the title.
