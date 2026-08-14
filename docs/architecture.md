@@ -34,7 +34,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ published through
 ┌─ OBSERVABLE STATE ───────────────▼─────────────────────────────────────────┐
-│ 31 @MainActor @Observable stores, sessions, indices and State types        │
+│ 32 @MainActor @Observable stores, sessions, indices and State types        │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ rendered by
 ┌─ VIEW ───────────────────────────▼─────────────────────────────────────────┐
@@ -132,7 +132,7 @@ the user enables direct menu-bar access, because a `MenuBarExtra` cannot provide
 
 ## Observation
 
-31 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
+32 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
 state through `@Environment` rather than `@EnvironmentObject`.
 
 Three things about this model are easy to get wrong:

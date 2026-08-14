@@ -690,7 +690,6 @@ struct NotesTests {
 
     private static func testWindowLayout() {
         let metrics = NoteWindowLayout.Metrics(
-            width: 520,
             minimumHeight: 320,
             maximumHeight: 840,
             screenMargin: 16,
@@ -755,6 +754,24 @@ struct NotesTests {
             "restoring a suspended editor preserves its panel height",
             NoteWindowLayout.preservedPanelHeight(
                 400, visibleScreenHeight: 900, metrics: metrics) == 400)
+        check(
+            "a screen below the normal minimum becomes the effective minimum",
+            NoteWindowLayout.panelHeight(
+                editorContentHeight: 10,
+                visibleScreenHeight: 280,
+                metrics: metrics) == 280)
+        check(
+            "a screen equal to the normal minimum retains that minimum",
+            NoteWindowLayout.panelHeight(
+                editorContentHeight: 10,
+                visibleScreenHeight: 320,
+                metrics: metrics) == 320)
+        check(
+            "a screen above the normal minimum keeps the 320-point floor",
+            NoteWindowLayout.panelHeight(
+                editorContentHeight: 10,
+                visibleScreenHeight: 321,
+                metrics: metrics) == 320)
 
         let current = CGRect(x: 300, y: 300, width: 520, height: 320)
         let visible = CGRect(x: 0, y: 0, width: 1_200, height: 900)
@@ -791,6 +808,29 @@ struct NotesTests {
             centerLiftFraction: 0.08)
         check("the short-screen panel remains vertically visible", shortFrame.minY >= 0)
         check("the short-screen panel remains below the screen top", shortFrame.maxY <= 330)
+
+        let emergencyVisible = CGRect(x: 0, y: 0, width: 1_200, height: 280)
+        let emergencyInitial = NoteWindowLayout.initialFrame(
+            visibleFrame: emergencyVisible,
+            height: 500,
+            width: 520,
+            centerLiftFraction: 0.08)
+        check("emergency placement clamps the panel height", emergencyInitial.height == 280)
+        check(
+            "emergency placement keeps the whole panel vertically reachable",
+            emergencyInitial.minY == emergencyVisible.minY
+                && emergencyInitial.maxY == emergencyVisible.maxY)
+        check("emergency placement keeps the fixed panel width", emergencyInitial.width == 520)
+        let emergencyRestored = NoteWindowLayout.resizedFrame(
+            currentFrame: CGRect(x: 300, y: -40, width: 520, height: 600),
+            height: 600,
+            visibleFrame: emergencyVisible,
+            width: 520)
+        check(
+            "an oversized restored frame is clamped back onto an emergency screen",
+            emergencyRestored.height == 280
+                && emergencyRestored.minY == emergencyVisible.minY
+                && emergencyRestored.maxY == emergencyVisible.maxY)
     }
 
     private static func testStoreCollectionAndExternalEdits() async throws {

@@ -92,11 +92,14 @@ invalidates the panel-presentation revision captured by an in-flight selection, 
 those file operations may finish, but their stale completion cannot reopen or focus the panel.
 
 The 520-point editor surface retains a 320-point minimum and grows to the smaller of 840 points or the
-display height minus two 16-point margins. Its fixed header keeps the display-only active title exactly
+display height minus two 16-point margins. On an emergency display shorter than 320 points, reachability
+wins: the complete panel clamps to the visible height while retaining its fixed 520-point width. Its
+fixed header keeps the display-only active title exactly
 centered, with one leading Hide circle and Reveal, Switcher, and Create in one trailing capsule. Header
 and footer chrome use a 12-point horizontal gutter, remain visible, dim to 35% only while the pointer and
-keyboard focus are both outside, and brighten without moving. Clean Saved is always hidden; other live
-and actionable status stays beside the title.
+keyboard focus are both outside, and brighten without moving. Clean Saved is always hidden; loading,
+dirty, and saving status follows that emphasis, while failure and conflict remain fully opaque and
+actionable beside the title.
 
 The fixed 54-point footer centers the canonical character count, formatting controls, and expanded pill
 on one vertical axis with 12 points around circular controls and 8 around the pill. Expanded formatting

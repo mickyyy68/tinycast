@@ -3,7 +3,6 @@ import Foundation
 
 enum NoteWindowLayout {
     struct Metrics: Sendable, Equatable {
-        let width: CGFloat
         let minimumHeight: CGFloat
         let maximumHeight: CGFloat
         let screenMargin: CGFloat
@@ -113,6 +112,7 @@ enum NoteWindowLayout {
 
     private static func constrainedFrame(_ proposedFrame: CGRect, to visibleFrame: CGRect) -> CGRect {
         var frame = proposedFrame
+        frame.size.height = min(max(0, frame.height), max(0, visibleFrame.height))
         if frame.maxX > visibleFrame.maxX { frame.origin.x = visibleFrame.maxX - frame.width }
         if frame.minX < visibleFrame.minX { frame.origin.x = visibleFrame.minX }
         if frame.minY < visibleFrame.minY { frame.origin.y = visibleFrame.minY }
@@ -125,11 +125,15 @@ enum NoteWindowLayout {
         visibleScreenHeight: CGFloat,
         metrics: Metrics
     ) -> CGFloat {
-        let maximum = min(
-            metrics.maximumHeight,
-            max(0, visibleScreenHeight - metrics.screenMargin * 2))
+        let visibleHeight = max(0, visibleScreenHeight)
+        let minimum = min(metrics.minimumHeight, visibleHeight)
+        let marginsFit = visibleHeight >= metrics.minimumHeight + metrics.screenMargin * 2
+        let availableHeight = marginsFit
+            ? max(0, visibleHeight - metrics.screenMargin * 2)
+            : visibleHeight
+        let maximum = min(metrics.maximumHeight, availableHeight)
         return min(
-            max(proposedHeight, metrics.minimumHeight),
-            max(metrics.minimumHeight, maximum))
+            max(proposedHeight, minimum),
+            max(minimum, maximum))
     }
 }

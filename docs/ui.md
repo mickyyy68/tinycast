@@ -160,15 +160,18 @@ The header keeps the display-only active title exactly centered. One leading red
 one trailing glass capsule contains Reveal, Switcher, and Create. Header and footer chrome use a
 12-point horizontal gutter, while editor text keeps its independent 16-point inset. The chrome stays
 visible and fades to `noteInactiveChrome 0.35` only while neither the pointer nor keyboard focus is
-inside the panel. Clean Saved is always hidden; loading, dirty, saving, failure, and conflict status sits
-beside the title without moving it, and actionable failures reopen their recovery report. Empty header
-space remains draggable. A rename field consumes Escape to cancel its draft; otherwise Escape closes one
+inside the panel. Clean Saved is always hidden; loading, dirty, and saving status follows ordinary chrome
+emphasis, while actionable failure and conflict statuses stay fully opaque and reopen their recovery
+report. All status sits beside the title without moving it. Empty header space remains draggable. A
+rename field consumes Escape to cancel its draft; otherwise Escape closes one
 layer at a time: switcher, expanded formatting, then Notes. Command-W and Hide order the panel out;
 focus loss leaves it visible.
 
 The editor is one native TextKit 2 surface backed by a literal-source/display projection. Inactive
 Markdown markers occupy no layout width; entering a construct reveals its source without moving the
-panel's top edge unless a screen margin requires it. The 54-point footer centers the canonical character
+panel's top edge unless a screen margin requires it. Screens shorter than the 320-point normal minimum
+use their visible height as the emergency minimum and clamp restored frames before positioning; the panel
+width remains 520 points. The 54-point footer centers the canonical character
 count and its controls 27 points above the panel edge. Its 30-point circles have 12 points above and
 below; the 38-point expanded formatting pill has 8 and shares the same center with its separate close
 control. Heading, emphasis, and list families open upward without moving the toolbar. Commands restore

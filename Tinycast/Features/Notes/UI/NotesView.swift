@@ -8,7 +8,6 @@ struct NotesView: View {
         VStack(spacing: 0) {
             header
                 .frame(height: Theme.Size.noteHeaderHeight)
-                .opacity(chromeOpacity)
             editorRegion
             footer
                 .frame(height: Theme.Size.noteFooterHeight, alignment: .bottom)
@@ -73,13 +72,16 @@ struct NotesView: View {
                 trailingActions
             }
             .padding(.horizontal, Theme.Spacing.xl)
+            .opacity(chromeOpacity)
 
             Text(notes.activeTitle)
                 .font(Theme.Typography.noteTitle)
                 .lineLimit(1)
+                .opacity(chromeOpacity)
                 .overlay(alignment: .trailing) {
                     statusView
                         .offset(x: Theme.Size.noteStatus + Theme.Spacing.xs)
+                        .opacity(status.actionable ? 1 : chromeOpacity)
                 }
                 .frame(
                     maxWidth: Theme.Size.noteWidth / 2

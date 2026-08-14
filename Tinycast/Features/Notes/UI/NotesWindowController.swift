@@ -23,6 +23,7 @@ final class NotesWindowController: NSObject, NSWindowDelegate {
     private weak var previousOwnWindow: NSWindow?
     private var editorHeight: CGFloat = 0
     private var editorGrowthPadding: CGFloat = 0
+    private var hasPositionedPanel = false
     private(set) var isSuspended = false
     private var suspendedVisibleFrame: CGRect?
 
@@ -49,7 +50,6 @@ final class NotesWindowController: NSObject, NSWindowDelegate {
         let panel = ensurePanel()
         position(
             panel,
-            restoreSavedFrame: panel.frame.origin == .zero,
             preferredVisibleFrame: preferredVisibleFrame,
             resizeAnchor: resizeAnchor,
             heightBehavior: heightBehavior)
@@ -101,7 +101,7 @@ final class NotesWindowController: NSObject, NSWindowDelegate {
         guard height.isFinite, height > 0 else { return }
         editorHeight = height
         guard let panel else { return }
-        position(panel, restoreSavedFrame: false, heightBehavior: .trackContent)
+        position(panel, heightBehavior: .trackContent)
     }
 
     func editorReady(_ textView: NoteTextView) {
@@ -134,7 +134,7 @@ final class NotesWindowController: NSObject, NSWindowDelegate {
 
     func saveFrame() {
         guard let panel else { return }
-        position(panel, restoreSavedFrame: false, heightBehavior: .preserve)
+        position(panel, heightBehavior: .preserve)
         panel.saveFrame(usingName: Self.frameAutosaveName)
     }
 
@@ -165,12 +165,11 @@ final class NotesWindowController: NSObject, NSWindowDelegate {
 
     private func position(
         _ panel: NotesPanel,
-        restoreSavedFrame: Bool,
         preferredVisibleFrame: CGRect? = nil,
         resizeAnchor: ResizeAnchor = .top,
         heightBehavior: HeightBehavior = .fitContent
     ) {
-        let restored = restoreSavedFrame && panel.setFrameUsingName(Self.frameAutosaveName)
+        let restored = !hasPositionedPanel && panel.setFrameUsingName(Self.frameAutosaveName)
         let visibleFrame = preferredVisibleFrame
             ?? panel.screen?.visibleFrame
             ?? screenContaining(panel.frame)?.visibleFrame
@@ -199,7 +198,7 @@ final class NotesWindowController: NSObject, NSWindowDelegate {
                 metrics: Self.metrics)
         }
         let frame: CGRect
-        if restored || panel.frame.origin != .zero {
+        if restored || hasPositionedPanel {
             switch resizeAnchor {
             case .top:
                 frame = NoteWindowLayout.resizedFrame(
@@ -224,6 +223,7 @@ final class NotesWindowController: NSObject, NSWindowDelegate {
         if panel.frame != frame {
             panel.setFrame(frame, display: panel.isVisible, animate: false)
         }
+        hasPositionedPanel = true
     }
 
     private func screenContaining(_ frame: CGRect) -> NSScreen? {
@@ -256,7 +256,6 @@ final class NotesWindowController: NSObject, NSWindowDelegate {
     }
 
     private static let metrics = NoteWindowLayout.Metrics(
-        width: Theme.Size.noteWidth,
         minimumHeight: Theme.Size.noteMinimumHeight,
         maximumHeight: Theme.Size.noteMaximumHeight,
         screenMargin: Theme.Size.noteScreenMargin,
