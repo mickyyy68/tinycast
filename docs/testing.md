@@ -333,7 +333,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   verify complete first and final rows remain legible, while disabled footer controls remain visibly dim
   without multiplying the inactive-panel opacity
 - Changing one nonempty switcher query to another leaves the prior rows selectable through the debounce,
-  then replaces them together with only the latest search result
+  then replaces them atomically with the latest complete result set
 - Changing one nonempty Search Notes query to another retains both the prior rows and their selected
   preview through debounce, then refreshes the preview when replacement selection changes
 - Clear a nonempty query, then type a different one; no rows from before the empty query reappear
