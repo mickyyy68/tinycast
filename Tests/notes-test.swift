@@ -43,6 +43,10 @@ struct NotesTests {
         search.updateQuery("alpha")
         await waitUntil { search.state == .ready }
         check("the first search finds its matching note", search.results.map(\.id) == [alphaID])
+        search.requestPreview(alphaID)
+        await waitUntil { search.previewState == .ready }
+        check("the first search previews its selected note", search.previewID == alphaID)
+        let previousRevision = search.resultsRevision
         let previousResults = search.results
 
         search.updateQuery("Beta")
@@ -50,13 +54,26 @@ struct NotesTests {
         check(
             "debouncing preserves the last complete result set",
             search.results == previousResults && search.visibleNotes == previousResults.map(\.summary))
+        check(
+            "debouncing preserves the selected preview with its retained rows",
+            search.previewID == alphaID && search.previewState == .ready)
         try? await Task.sleep(for: .milliseconds(30))
         check(
             "the previous rows remain usable throughout the debounce",
             search.results == previousResults)
+        check(
+            "the previous preview remains usable throughout the debounce",
+            search.previewID == alphaID && search.previewState == .ready)
 
         await waitUntil { search.state == .ready }
         check("the latest search replaces results atomically", search.results.map(\.id) == [betaID])
+        check("replacement results publish a preview refresh revision", search.resultsRevision > previousRevision)
+        check(
+            "replacement publication never blanks the retained preview",
+            search.previewID == alphaID && search.previewState == .ready)
+        search.refreshPreview(betaID)
+        await waitUntil { search.previewState == .ready }
+        check("replacement selection refreshes its preview", search.previewID == betaID)
     }
 
     private static func testSwitcherInteraction() {

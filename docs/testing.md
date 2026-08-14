@@ -333,6 +333,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   without multiplying the inactive-panel opacity
 - Changing one nonempty switcher query to another leaves the prior rows selectable through the debounce,
   then replaces them together with only the latest search result
+- Changing one nonempty Search Notes query to another retains both the prior rows and their selected
+  preview through debounce, then refreshes the preview when replacement selection changes
 - Hide during Select, Rename, and the Trash confirmation; each operation may finish, but the panel stays
   hidden even after a later reopen, and Trash selects next, then previous, then its fallback row
 - Hide while Create is pending, and leave or dismiss Search Notes while a result is opening; filesystem

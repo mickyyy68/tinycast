@@ -18,6 +18,7 @@ final class NotesSearchSession {
 
     private(set) var query = ""
     private(set) var results: [NoteSearchResult] = []
+    private(set) var resultsRevision = 0
     private(set) var state: State = .idle
     private(set) var previewID: NoteID?
     private(set) var previewSource: String?
@@ -97,6 +98,14 @@ final class NotesSearchSession {
         loadPreview(id, force: false)
     }
 
+    func refreshPreview(_ id: NoteID?) {
+        guard let id else {
+            clearPreview()
+            return
+        }
+        loadPreview(id, force: true)
+    }
+
     private func loadPreview(_ id: NoteID, force: Bool) {
         if id == store.activeID {
             previewTask?.cancel()
@@ -157,7 +166,6 @@ final class NotesSearchSession {
         searchWorker?.cancel()
         searchGeneration &+= 1
         let generation = searchGeneration
-        clearPreview()
         guard !parsed.isEmpty else {
             state = .idle
             return
@@ -188,6 +196,7 @@ final class NotesSearchSession {
             let found = await worker.value
             guard !Task.isCancelled, generation == searchGeneration else { return }
             results = found
+            resultsRevision &+= 1
             state = .ready
             searchWorker = nil
             searchTask = nil

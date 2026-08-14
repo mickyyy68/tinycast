@@ -124,8 +124,9 @@ The compact switcher and palette browser share `NotesSearchSession`. An empty qu
 summaries by recency. A nonempty query is split on whitespace, debounced for 120 milliseconds, and
 searches titles and literal bodies in a cancellable detached worker. The active note uses its in-memory
 draft; other notes come from disk. Fuzzy title hits rank above body-only hits, results are capped at 200,
-and a generation check prevents a superseded search from publishing. The last complete result set stays
-visible and selectable until the latest nonempty query replaces it atomically.
+and a generation check prevents a superseded search from publishing. The last complete result set and
+its selected preview stay visible and usable until the latest nonempty query replaces the rows
+atomically.
 
 Return opens the selected note. Inline rename coordinates the file move; Escape cancels its draft, and
 row navigation pauses until the field is committed or cancelled. Command-Delete belongs to the

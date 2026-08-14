@@ -33,6 +33,9 @@ struct NotesSearchScreen: PaletteScreen {
             content(selected: selected, scroll: scroll)
                 .onAppear { session.requestPreview(selected?.id) }
                 .onChange(of: selected?.id) { _, id in session.requestPreview(id) }
+                .onChange(of: session.resultsRevision) { _, _ in
+                    session.refreshPreview(selected?.id)
+                }
                 .onChange(of: store.summaries) { _, _ in session.synchronize() }
                 .onChange(of: store.source) { _, _ in session.refreshActivePreview() }
         )
