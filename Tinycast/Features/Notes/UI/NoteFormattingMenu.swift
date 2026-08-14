@@ -20,6 +20,7 @@ struct NoteFormattingMenu: View {
             }
             .onMoveCommand(perform: moveFocus)
             .disabled(!isInteractive)
+            .opacity(isInteractive ? 1 : Theme.Opacity.noteDisabledControl)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Note Formatting")
     }
@@ -176,12 +177,12 @@ struct NoteFormattingMenu: View {
     }
 
     private func menuRowBackground(_ selected: Bool) -> some View {
-        RoundedRectangle(cornerRadius: Theme.Radius.menu, style: .continuous)
+        RoundedRectangle(cornerRadius: Theme.Radius.menuRow, style: .continuous)
             .fill(selected ? Theme.Colors.selection : .clear)
     }
 
     private func menuRowFocusBorder(_ target: FocusTarget) -> some View {
-        RoundedRectangle(cornerRadius: Theme.Radius.menu, style: .continuous)
+        RoundedRectangle(cornerRadius: Theme.Radius.menuRow, style: .continuous)
             .stroke(focused == target ? Theme.Colors.border : .clear, lineWidth: 1)
     }
 

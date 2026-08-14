@@ -100,8 +100,9 @@ The fixed 54-point footer centers the canonical character count, formatting cont
 on one vertical axis with 12 points around circular controls and 8 around the pill. Expanded formatting
 is a persisted per-channel presentation choice and uses a grouped pill plus a separate close circle. The
 floating switcher keeps the editor mounted beneath it and leaves either footer state visible but
-disabled. Its active row shows a blue Current marker and live character count; other rows show relative
-modification time and file size.
+disabled at the dedicated control opacity. Its fixed search row has one Close action and a custom
+non-interactive prompt, so focus never moves the text vertically. Its active row shows a blue Current
+marker and live character count; other rows show relative modification time and file size.
 
 During one open-note session the panel follows laid-out content in both directions. A document that
 starts at the minimum retains its initial editor breathing room, so each increase grows the panel

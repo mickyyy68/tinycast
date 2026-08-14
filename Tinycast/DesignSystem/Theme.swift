@@ -140,6 +140,7 @@ enum Theme {
 
     enum Opacity {
         static let noteInactiveChrome: CGFloat = 0.35
+        static let noteDisabledControl: CGFloat = 0.35
     }
 
     /// System text styles (not hardcoded sizes) so the UI honors Dynamic Type.

@@ -182,11 +182,13 @@ while outside clicks do not.
 The compact switcher is a glass floating control over the still-mounted editor and never changes the
 frame. Exposed editor clicks dismiss it; the editor cannot receive edits while it is open. The footer
 remains visible: a collapsed toggle or expanded formatting pill stays discoverable but disabled. Its
-plain search field, Notes label, and keyboard-navigable rows use the shared selection/hover ramp. The
-active row shows a blue Current marker and live character count; other rows show relative modification
-time and file size. Rename owns its draft until Return commits or Escape cancels, suspends row arrows,
-and leaves native Command-Delete intact; that shortcut moves the selected note to Trash only outside
-rename. Rename and Trash remain row actions rather than adding another toolbar or window.
+plain search field uses the stable custom-prompt pattern and ends in one Close action; it has no separate
+clear control. The Notes label uses shared section spacing, and the scroll view uses the standard edge
+dissolve and thin scrollbar. Keyboard-navigable rows use the shared selection/hover ramp. The active row
+shows a blue Current marker and live character count; other rows show relative modification time and
+file size. Rename owns its draft until Return commits or Escape cancels, suspends row arrows, and leaves
+native Command-Delete intact; that shortcut moves the selected note to Trash only outside rename.
+Rename and Trash use independent 24-point accessibility targets beside the row's default activation.
 The separate Search Notes command uses the main palette's
 Clipboard-style split: a 290-point date-sectioned title list, the shared vertical hairline, and a
 read-only rendered Markdown preview. Typed results drop date headers to preserve relevance order.

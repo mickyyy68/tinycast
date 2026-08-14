@@ -324,8 +324,12 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   visible but disabled beneath the switcher
 - The compact glass switcher floats over an uneditable mounted editor; clicking exposed editor space
   closes it and focuses the editor
+- Focusing and typing in the switcher does not move its prompt; the fixed trailing Close action dismisses
+  it, and no query-dependent Clear action appears
 - Switcher rows show a blue Current marker plus live character count for the active note and modification
-  time plus file size for other notes
+  time plus file size for other notes; VoiceOver reaches row activation, Rename, and Trash separately
+- A long switcher list uses the custom thin scrollbar and edge dissolve, and disabled footer controls
+  remain visibly dim without multiplying the inactive-panel opacity
 - The compact formatting pill, its grouped menus, keyboard navigation, every formatting action, and
   Command-B/I/K plus Shift-Command-X/7/8/9 update literal source and undo in one step
 - Moving the caret across formatting and switching notes updates selected fills without retaining the

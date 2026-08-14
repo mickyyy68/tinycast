@@ -35,21 +35,29 @@ struct NoteSwitcherView: View {
 
     private var searchField: some View {
         HStack(spacing: Theme.Spacing.md) {
-            TextField("Search notes…", text: notes.searchQueryBinding)
+            TextField("", text: notes.searchQueryBinding)
                 .textFieldStyle(.plain)
                 .focused($searchFocused)
+                .background(alignment: .leading) {
+                    if notes.searchQueryBinding.wrappedValue.isEmpty {
+                        Text("Search notes…")
+                            .foregroundStyle(Theme.Colors.textTertiary)
+                            .allowsHitTesting(false)
+                    }
+                }
                 .onExitCommand { notes.closeSwitcher() }
                 .accessibilityLabel("Search Notes")
-            if !notes.searchQueryBinding.wrappedValue.isEmpty {
-                Button {
-                    notes.searchQueryBinding.wrappedValue = ""
-                } label: {
-                    SymbolImage(name: "xmark.circle.fill", size: Theme.Size.noteStatus)
-                        .foregroundStyle(Theme.Colors.textTertiary)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Clear Search")
+            Button {
+                notes.closeSwitcher()
+            } label: {
+                SymbolImage(name: "xmark.circle.fill", size: Theme.Size.noteStatus)
+                    .foregroundStyle(Theme.Colors.textTertiary)
+                    .frame(width: Theme.Size.rowIcon, height: Theme.Size.rowIcon)
+                    .contentShape(Circle())
             }
+            .buttonStyle(.plain)
+            .help("Close Note Switcher")
+            .accessibilityLabel("Close Note Switcher")
         }
         .padding(.horizontal, Theme.Spacing.xl)
         .frame(height: Theme.Size.noteHeaderHeight)
@@ -61,8 +69,8 @@ struct NoteSwitcherView: View {
             .foregroundStyle(Theme.Colors.textSecondary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, Theme.Spacing.xl)
-            .padding(.top, Theme.Spacing.xxl)
-            .padding(.bottom, Theme.Spacing.md)
+            .padding(.top, Theme.Spacing.sectionSpacing)
+            .padding(.bottom, Theme.Spacing.sectionHeaderBottom)
     }
 
     @ViewBuilder
@@ -103,7 +111,11 @@ struct NoteSwitcherView: View {
                         }
                     }
                     .padding(Theme.Spacing.md)
+                    .hideNativeScrollers()
+                    .scrollOriginAnchor()
                 }
+                .edgeDissolve()
+                .thinScrollbar()
                 .onChange(of: notes.switcherSelection) { _, selected in
                     if let selected { proxy.scrollTo(selected, anchor: .center) }
                 }
@@ -186,9 +198,13 @@ private struct NoteSwitcherRow: View {
             onActivate()
         }
         .onHover { hovered = $0 }
-        .accessibilityElement(children: editing ? .contain : .combine)
+        .accessibilityElement(children: .contain)
         .accessibilityLabel("\(summary.title), \(metadataLabel)")
         .accessibilityAddTraits(selected ? .isSelected : [])
+        .accessibilityAction {
+            guard !editing else { return }
+            onActivate()
+        }
         .onChange(of: editing) { _, editing in
             if editing {
                 Task { @MainActor in
@@ -243,7 +259,8 @@ private struct NoteSwitcherRow: View {
     ) -> some View {
         Button(action: action) {
             SymbolImage(name: symbol, size: Theme.Size.noteStatus)
-                .frame(width: Theme.Size.noteStatus, height: Theme.Size.noteStatus)
+                .frame(width: Theme.Size.rowIcon, height: Theme.Size.rowIcon)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .help(title)

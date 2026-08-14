@@ -12,7 +12,6 @@ struct NotesView: View {
             editorRegion
             footer
                 .frame(height: Theme.Size.noteFooterHeight, alignment: .bottom)
-                .opacity(chromeOpacity)
                 .zIndex(notes.isFormattingExpanded ? 2 : 0)
         }
         .animation(.easeOut(duration: Theme.Duration.exit), value: notes.isFormattingExpanded)
@@ -137,6 +136,7 @@ struct NotesView: View {
                     isInteractive: notes.isFormattingInteractive,
                     onSelect: notes.applyFormatting)
                     .fixedSize()
+                    .opacity(notes.isFormattingInteractive ? chromeOpacity : 1)
                     .transition(
                         .opacity.combined(
                             with: .scale(scale: 0.96, anchor: .bottom)))
@@ -157,6 +157,7 @@ struct NotesView: View {
                     .font(.caption)
                     .foregroundStyle(Theme.Colors.textTertiary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .opacity(chromeOpacity)
                 HStack {
                     Spacer()
                     circularButton(
@@ -242,6 +243,7 @@ struct NotesView: View {
         .buttonStyle(.plain)
         .frosted(in: Circle())
         .disabled(!enabled)
+        .opacity(enabled ? chromeOpacity : Theme.Opacity.noteDisabledControl)
         .help(title)
         .accessibilityLabel(title)
     }
