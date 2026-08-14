@@ -71,6 +71,12 @@ struct NotesTests {
         check(
             "replacement publication never blanks the retained preview",
             search.previewID == alphaID && search.previewState == .ready)
+
+        search.updateQuery("")
+        check("clearing the query clears cached search results", search.results.isEmpty)
+        search.updateQuery("Beta")
+        check("a new query cannot retain results from before an empty query", search.results.isEmpty)
+        await waitUntil { search.state == .ready }
         search.refreshPreview(betaID)
         await waitUntil { search.previewState == .ready }
         check("replacement selection refreshes its preview", search.previewID == betaID)

@@ -164,6 +164,8 @@ final class NotesSearchSession {
         searchGeneration &+= 1
         let generation = searchGeneration
         guard !parsed.isEmpty else {
+            results = []
+            resultsRevision &+= 1
             state = .idle
             return
         }
