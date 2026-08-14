@@ -342,6 +342,7 @@ private struct NoteSwitcherRow: View {
         }
         .buttonStyle(.plain)
         .help(title)
+        .accessibilityHidden(true)
         .accessibilityLabel(title)
     }
 }

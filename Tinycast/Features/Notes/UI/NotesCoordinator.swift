@@ -263,7 +263,12 @@ final class NotesCoordinator {
         operationTask = Task { [weak self] in
             guard let self else { return }
             let previousID = store.activeID
-            let selected = await store.select(id)
+            let selected = await store.select(id) { [weak self] in
+                guard let self else { return false }
+                return presentationGeneration.permitsCompletion(
+                    capturedGeneration: capturedGeneration,
+                    isVisible: windowController.isVisible)
+            }
             operationTask = nil
             guard selected, settings.notesEnabled, !Task.isCancelled else {
                 if !settings.notesEnabled { store.stop() }
@@ -286,7 +291,10 @@ final class NotesCoordinator {
         operationTask = Task { [weak self] in
             guard let self else { return }
             let previousID = store.activeID
-            let selected = await store.select(id)
+            let selected = await store.select(id) { [weak self] in
+                self?.presentationGeneration.permitsPresentation(
+                    capturedGeneration: capturedGeneration) ?? false
+            }
             operationTask = nil
             guard selected, settings.notesEnabled, !Task.isCancelled else {
                 if !settings.notesEnabled { store.stop() }

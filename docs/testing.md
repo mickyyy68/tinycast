@@ -292,8 +292,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Create Note makes one unique Untitled file, including as the first action in an empty channel
 - The title remains exactly centered and display-only; one leading Hide circle and the trailing Reveal,
   Switcher, Create capsule remain visible without shifting it
-- Header and footer control bounds use 12-point horizontal gutters; the centered footer count, toggle,
-  expanded pill, and close control share one vertical center with 12/8-point breathing room
+- Header and footer control bounds use 16-point horizontal gutters; the centered footer count, toggle,
+  expanded pill, and close control share one vertical center with 12/10-point breathing room
 - Header and footer chrome dim while inactive, brighten on whole-panel hover or keyboard focus, and
   retain every pointer and accessibility target; note content never dims
 - Command-P focuses switcher search, arrows move selection, Return opens, and Command-N creates

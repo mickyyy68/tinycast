@@ -1021,6 +1021,12 @@ struct NotesTests {
         check(
             "a superseded preview cannot replace the final selection",
             search.previewID == activePreviewID && search.previewSource == store.source)
+        let selectionBeforeRejection = selection.id
+        let rejectedSelection = await store.select(firstID, permitsApply: { false })
+        check(
+            "a superseded selection cannot change or persist the active note",
+            !rejectedSelection && store.activeID == activePreviewID
+                && selection.id == selectionBeforeRejection)
         let selected = await store.select(firstID)
         check(
             "select flushes and changes the active document",
