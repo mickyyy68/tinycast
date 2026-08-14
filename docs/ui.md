@@ -84,7 +84,8 @@ Always `RoundedRectangle(cornerRadius:, style: .continuous)` — continuous corn
 `hudHeight 100` · `volumeTrackHeight 6` · `volumeKnob 16` · `volumeReadout 38`
 
 Notes adds `noteWidth 520`, `noteMinimumHeight 320`, `noteMaximumHeight 840`,
-`noteScreenMargin 16`, `noteHeaderHeight 44`, `noteFooterHeight 54`, `noteEditorInset 16`,
+`noteScreenMargin 16`, `noteHeaderHeight 52`, `noteFooterHeight 54`, `noteEditorInset 16`,
+`noteSwitcherHeaderHeight 44`,
 `noteHeaderButton 30`, `noteStatus 16`, `noteCloseIndicator 14`, `noteSwitcherWidth 420`,
 `noteSwitcherMaximumHeight 360`, and `noteFormattingMenuWidth 176`.
 `noteCenterLiftFraction 0.08` is its initial optical lift.
@@ -157,8 +158,8 @@ TextKit layout, and only the active editor epoch may change the frame. Frame aut
 position only.
 
 The header keeps the display-only active title exactly centered. One leading red circle provides Hide;
-one trailing glass capsule contains Reveal, Switcher, and Create. Header and footer chrome use a
-12-point horizontal gutter, while editor text keeps its independent 16-point inset. The chrome stays
+one trailing glass capsule contains Reveal, Switcher, and Create. Header and footer edge chrome use a
+16-point horizontal gutter, while editor text keeps its independent 16-point inset. The chrome stays
 visible and fades to `noteInactiveChrome 0.35` only while neither the pointer nor keyboard focus is
 inside the panel. Clean Saved is always hidden; loading, dirty, and saving status follows ordinary chrome
 emphasis, while actionable failure and conflict statuses stay fully opaque and reopen their recovery

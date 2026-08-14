@@ -71,7 +71,7 @@ struct NotesView: View {
                 Spacer()
                 trailingActions
             }
-            .padding(.horizontal, Theme.Spacing.xl)
+            .padding(.horizontal, Theme.Size.noteChromeGutter)
             .opacity(chromeOpacity)
 
             Text(notes.activeTitle)
@@ -142,7 +142,7 @@ struct NotesView: View {
                     .transition(
                         .opacity.combined(
                             with: .scale(scale: 0.96, anchor: .bottom)))
-                    .padding(.bottom, Theme.Spacing.md)
+                    .padding(.bottom, Theme.Spacing.lg)
 
                 HStack {
                     Spacer()
@@ -152,7 +152,7 @@ struct NotesView: View {
                         enabled: notes.isFormattingInteractive,
                         action: notes.dismissFormatting)
                 }
-                .padding(.horizontal, Theme.Spacing.xl)
+                .padding(.horizontal, Theme.Size.noteChromeGutter)
                 .padding(.bottom, Theme.Spacing.xl)
             } else {
                 Text(characterCountLabel)
@@ -168,7 +168,7 @@ struct NotesView: View {
                         enabled: !notes.isSwitcherPresented,
                         action: notes.toggleFormatting)
                 }
-                .padding(.horizontal, Theme.Spacing.xl)
+                .padding(.horizontal, Theme.Size.noteChromeGutter)
                 .padding(.bottom, Theme.Spacing.xl)
             }
         }

@@ -693,7 +693,7 @@ struct NotesTests {
             minimumHeight: 320,
             maximumHeight: 840,
             screenMargin: 16,
-            fixedContentHeight: 98)
+            fixedContentHeight: 106)
         check(
             "short notes use the minimum height",
             NoteWindowLayout.panelHeight(
@@ -701,18 +701,18 @@ struct NotesTests {
         check(
             "natural height includes header and footer chrome",
             NoteWindowLayout.panelHeight(
-                editorContentHeight: 300, visibleScreenHeight: 900, metrics: metrics) == 398)
+                editorContentHeight: 300, visibleScreenHeight: 900, metrics: metrics) == 406)
         check(
             "live editing grows from the new minimum height",
             NoteWindowLayout.contentTrackingPanelHeight(
                 editorContentHeight: 300,
                 visibleScreenHeight: 900,
-                metrics: metrics) == 398)
+                metrics: metrics) == 406)
         let growthPadding = NoteWindowLayout.editorGrowthPadding(
             initialEditorContentHeight: 32,
             initialPanelHeight: 320,
             metrics: metrics)
-        check("minimum-height sessions retain their initial editor breathing room", growthPadding == 190)
+        check("minimum-height sessions retain their initial editor breathing room", growthPadding == 182)
         check(
             "a new line grows a minimum-height session immediately",
             NoteWindowLayout.contentTrackingPanelHeight(
@@ -735,7 +735,7 @@ struct NotesTests {
             NoteWindowLayout.contentTrackingPanelHeight(
                 editorContentHeight: 450,
                 visibleScreenHeight: 900,
-                metrics: metrics) == 548)
+                metrics: metrics) == 556)
         check(
             "content tracking still obeys the screen margins",
             NoteWindowLayout.contentTrackingPanelHeight(

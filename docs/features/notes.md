@@ -101,7 +101,10 @@ keyboard focus are both outside, and brighten without moving. Clean Saved is alw
 dirty, and saving status follows that emphasis, while failure and conflict remain fully opaque and
 actionable beside the title.
 
-The fixed 54-point footer centers the canonical character count, formatting controls, and expanded pill
+The 52-point header gives its 38-point action capsule 7 points of vertical breathing room while keeping
+Hide, title, status, and actions centered. The fixed 54-point footer uses a 16-point horizontal chrome
+gutter and centers the canonical character
+count, formatting controls, and expanded pill
 on one vertical axis with 12 points around circular controls and 10 around the 34-point pill. Expanded formatting
 is a persisted per-channel presentation choice and uses a grouped pill plus a separate close circle. The
 floating switcher keeps the editor mounted beneath it and leaves either footer state visible but

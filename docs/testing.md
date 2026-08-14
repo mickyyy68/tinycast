@@ -344,6 +344,10 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   follows trigger-to-row navigation
 - The 34-point formatting pill stays centered with its close control; resting artwork is uniformly
   muted, and only hover, focus, selection, or expansion brightens the owning control
+- Header and footer edge controls keep a 16-point horizontal gutter while the centered title and
+  formatting pill remain horizontally stationary
+- The 52-point Notes header keeps Hide, title, status, and actions vertically centered with visible
+  breathing room around the trailing capsule; the switcher search row remains 44 points high
 - Applying several formatting actions keeps the pill open; its close circle and Escape collapse it,
   while an outside click does not
 - Opening each formatting family menu leaves the toolbar center and panel frame stationary; verify its

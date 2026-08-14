@@ -43,12 +43,14 @@ enum Theme {
         static let noteMaximumHeight: CGFloat = 840
         static let noteScreenMargin: CGFloat = 16
         static let noteCenterLiftFraction: CGFloat = 0.08
-        static let noteHeaderHeight: CGFloat = 44
+        static let noteHeaderHeight: CGFloat = 52
         static let noteFooterHeight: CGFloat = 54
+        static let noteChromeGutter: CGFloat = 16
         static let noteEditorInset: CGFloat = 16
         static let noteCloseIndicator: CGFloat = 14
         static let noteSwitcherWidth: CGFloat = 420
         static let noteSwitcherMaximumHeight: CGFloat = 360
+        static let noteSwitcherHeaderHeight: CGFloat = 44
         /// Fraction of visible height above the palette's top edge; it grows downward.
         static let paletteTopMarginFraction: CGFloat = 0.18
         static let headerHeight: CGFloat = 44

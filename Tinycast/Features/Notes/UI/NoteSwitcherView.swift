@@ -60,7 +60,7 @@ struct NoteSwitcherView: View {
             .accessibilityLabel("Close Note Switcher")
         }
         .padding(.horizontal, Theme.Spacing.xl)
-        .frame(height: Theme.Size.noteHeaderHeight)
+        .frame(height: Theme.Size.noteSwitcherHeaderHeight)
     }
 
     private var sectionLabel: some View {
@@ -141,7 +141,7 @@ struct NoteSwitcherView: View {
 
 private struct NoteSwitcherEdgeDissolve: ViewModifier {
     // The compact card has no overlapping footer, so it needs less fade than the palette list.
-    private let fade: CGFloat = Theme.Size.noteHeaderHeight
+    private let fade: CGFloat = Theme.Size.noteSwitcherHeaderHeight
     private let minimumAlpha: CGFloat = 0.25
 
     @State private var topDistance: CGFloat = 0
