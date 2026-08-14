@@ -325,11 +325,12 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - The compact glass switcher floats over an uneditable mounted editor; clicking exposed editor space
   closes it and focuses the editor
 - Focusing and typing in the switcher does not move its prompt; the fixed trailing Close action dismisses
-  it, and no query-dependent Clear action appears
+  it with the same plain `xmark` as formatting dismissal, and no query-dependent Clear action appears
 - Switcher rows show a blue Current marker plus live character count for the active note and modification
   time plus file size for other notes; VoiceOver reaches row activation, Rename, and Trash separately
-- A long switcher list uses the custom thin scrollbar and edge dissolve, and disabled footer controls
-  remain visibly dim without multiplying the inactive-panel opacity
+- A long switcher list uses the custom thin scrollbar and compact edge dissolve; scroll to both ends and
+  verify complete first and final rows remain legible, while disabled footer controls remain visibly dim
+  without multiplying the inactive-panel opacity
 - Changing one nonempty switcher query to another leaves the prior rows selectable through the debounce,
   then replaces them together with only the latest search result
 - Hide during Select, Rename, and the Trash confirmation; each operation may finish, but the panel stays
@@ -339,13 +340,16 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Moving the caret across formatting and switching notes updates selected fills without retaining the
   previous note's state
 - Selected formatting fills remain inside the capsule; family menus appear and close without animation,
-  Up and Down open them from opposite ends, and one focus ring follows trigger-to-row navigation
+  pointer hover uses the menu highlight, Up and Down open them from opposite ends, and one focus ring
+  follows trigger-to-row navigation
 - Applying several formatting actions keeps the pill open; its close circle and Escape collapse it,
   while an outside click does not
 - Opening each formatting family menu leaves the toolbar center and panel frame stationary; verify its
-  trigger alignment with larger text sizes
+  trigger alignment with larger text sizes and consistent compact group-chevron spacing
 - Formatting expansion survives hide/show and a fresh Dev relaunch; opening the switcher closes an open
   family menu without changing that preference
+- The header capsule, footer circles, and formatting pill share frosted interactive glass; family menus
+  and the switcher retain ordinary overlay glass
 - Return continues bullets, numbers, and tasks; an empty item exits, and Tab/Shift-Tab nest and outdent
 - Edit one note, switch to a shorter note, then Undo and Redo: the new note remains intact and the app
   does not terminate; repeat after a clean external reload

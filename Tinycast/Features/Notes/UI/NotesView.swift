@@ -156,7 +156,7 @@ struct NotesView: View {
                 .padding(.bottom, Theme.Spacing.xl)
             } else {
                 Text(characterCountLabel)
-                    .font(.caption)
+                    .font(Theme.Typography.noteMetadata)
                     .foregroundStyle(Theme.Colors.textTertiary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .opacity(chromeOpacity)

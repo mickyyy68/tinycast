@@ -105,9 +105,10 @@ The fixed 54-point footer centers the canonical character count, formatting cont
 on one vertical axis with 12 points around circular controls and 8 around the pill. Expanded formatting
 is a persisted per-channel presentation choice and uses a grouped pill plus a separate close circle. The
 floating switcher keeps the editor mounted beneath it and leaves either footer state visible but
-disabled at the dedicated control opacity. Its fixed search row has one Close action and a custom
+disabled at the dedicated control opacity. Its fixed search row has one plain `xmark` Close action and a custom
 non-interactive prompt, so focus never moves the text vertically. Its active row shows a blue Current
 marker and live character count; other rows show relative modification time and file size.
+Its compact edge dissolve communicates overflow without obscuring a complete final row.
 
 During one open-note session the panel follows laid-out content in both directions. A document that
 starts at the minimum retains its initial editor breathing room, so each increase grows the panel
@@ -170,13 +171,13 @@ document cannot resize the active note. Formatting reports carry the same identi
 the expanded toolbar aligned with caret moves and source edits in only the active note. Marked-text
 composition freezes projection until commit.
 
-The footer's `textformat` control opens a Tinycast-owned compact glass formatting pill. Heading,
+The footer's `textformat` control opens a Tinycast-owned compact frosted formatting pill. Heading,
 emphasis, and list controls are grouped and open small menus above the pill; link, inline code, fenced
 code, quote, and horizontal rule remain direct actions. Applying a command keeps the pill open and
 restores editor focus. The separate close circle or Escape collapses it; outside clicks do not. Opening
 the switcher closes any family menu and disables the mounted pill without changing its persisted
 expanded choice. Family menus appear and close without animation, and selected fills follow the
-formatting capsule's rounded geometry. Each family menu anchors to its own trigger without assuming a
+formatting capsule's rounded geometry; pointer hover uses the shared menu highlight. Each family menu anchors to its own trigger without assuming a
 fixed menu height; Up opens it from the last item and Down from the first. Command-B, Command-I,
 Command-K, Shift-Command-X, and Shift-Command-7/8/9 use the same source-edit planner.
 

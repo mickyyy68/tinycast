@@ -50,7 +50,7 @@ struct NoteSwitcherView: View {
             Button {
                 notes.closeSwitcher()
             } label: {
-                SymbolImage(name: "xmark.circle.fill", size: Theme.Size.noteStatus)
+                SymbolImage(name: "xmark", size: Theme.Size.noteStatus)
                     .foregroundStyle(Theme.Colors.textTertiary)
                     .frame(width: Theme.Size.rowIcon, height: Theme.Size.rowIcon)
                     .contentShape(Circle())
@@ -114,7 +114,7 @@ struct NoteSwitcherView: View {
                     .hideNativeScrollers()
                     .scrollOriginAnchor()
                 }
-                .edgeDissolve()
+                .modifier(NoteSwitcherEdgeDissolve())
                 .thinScrollbar()
                 .onChange(of: notes.switcherSelection) { _, selected in
                     if let selected { proxy.scrollTo(selected, anchor: .center) }
@@ -139,7 +139,69 @@ struct NoteSwitcherView: View {
 
 }
 
+private struct NoteSwitcherEdgeDissolve: ViewModifier {
+    // The compact card has no overlapping footer, so it needs less fade than the palette list.
+    private let fade: CGFloat = Theme.Size.noteHeaderHeight
+    private let minimumAlpha: CGFloat = 0.25
+
+    @State private var topDistance: CGFloat = 0
+    @State private var bottomDistance: CGFloat = 0
+    @State private var canScroll = false
+
+    private struct ScrollState: Equatable {
+        var top: CGFloat
+        var bottom: CGFloat
+        var canScroll: Bool
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .onScrollGeometryChange(for: ScrollState.self) { geometry in
+                let visibleHeight = geometry.containerSize.height
+                    - geometry.contentInsets.top - geometry.contentInsets.bottom
+                return ScrollState(
+                    top: geometry.contentOffset.y + geometry.contentInsets.top,
+                    bottom: geometry.contentSize.height + geometry.contentInsets.bottom
+                        - geometry.containerSize.height - geometry.contentOffset.y,
+                    canScroll: geometry.contentSize.height > visibleHeight
+                )
+            } action: { _, state in
+                topDistance = max(0, state.top)
+                bottomDistance = max(0, state.bottom)
+                canScroll = state.canScroll
+            }
+            .mask {
+                GeometryReader { geometry in
+                    LinearGradient(
+                        stops: stops(height: geometry.size.height),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                }
+            }
+    }
+
+    private func stops(height: CGFloat) -> [Gradient.Stop] {
+        guard canScroll, height > 0 else { return [.init(color: .black, location: 0)] }
+        let topAlpha = edgeAlpha(distance: topDistance)
+        let bottomAlpha = edgeAlpha(distance: bottomDistance)
+        return [
+            .init(color: .black.opacity(0), location: 0),
+            .init(color: .black.opacity(topAlpha), location: fade / 2 / height),
+            .init(color: .black, location: fade / height),
+            .init(color: .black, location: 1 - fade / height),
+            .init(color: .black.opacity(bottomAlpha), location: 1 - fade / 2 / height),
+            .init(color: .black.opacity(0), location: 1)
+        ]
+    }
+
+    private func edgeAlpha(distance: CGFloat) -> CGFloat {
+        1 - (1 - minimumAlpha) * min(distance / fade, 1)
+    }
+}
+
 private struct NoteSwitcherRow: View {
+    @Environment(NotesCoordinator.self) private var notes
     let summary: NoteSummary
     let selected: Bool
     let current: Bool
@@ -175,7 +237,7 @@ private struct NoteSwitcherRow: View {
                         .lineLimit(1)
                 }
                 metadata
-                    .font(.caption)
+                    .font(Theme.Typography.noteMetadata)
                     .foregroundStyle(Theme.Colors.textSecondary)
                     .lineLimit(1)
             }
@@ -197,7 +259,15 @@ private struct NoteSwitcherRow: View {
             guard !editing else { return }
             onActivate()
         }
-        .onHover { hovered = $0 }
+        .onContinuousHover(coordinateSpace: .local) { phase in
+            switch phase {
+            case .active:
+                hovered = notes.switcherHoverHighlightArmed
+            case .ended:
+                hovered = false
+            }
+        }
+        .onChange(of: notes.switcherHoverDisarmRevision) { _, _ in hovered = false }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("\(summary.title), \(metadataLabel)")
         .accessibilityAddTraits(selected ? .isSelected : [])

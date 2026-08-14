@@ -6,6 +6,7 @@ struct NoteFormattingMenu: View {
     let onSelect: (NoteMarkdownCommand) -> Void
     @FocusState private var focused: FocusTarget?
     @State private var expandedGroup: FormatGroup?
+    @State private var hoveredCommand: NoteMarkdownCommand?
 
     var body: some View {
         toolbar
@@ -14,10 +15,12 @@ struct NoteFormattingMenu: View {
                     withoutAnimation {
                         expandedGroup = nil
                         focused = nil
+                        hoveredCommand = nil
                     }
                     return
                 }
             }
+            .onChange(of: expandedGroup) { _, _ in hoveredCommand = nil }
             .onMoveCommand(perform: moveFocus)
             .disabled(!isInteractive)
             .opacity(isInteractive ? 1 : Theme.Opacity.noteDisabledControl)
@@ -40,7 +43,7 @@ struct NoteFormattingMenu: View {
             groupButton(.list)
         }
         .padding(Theme.Spacing.xs)
-        .glassEffect(.regular, in: Capsule())
+        .frosted(in: Capsule())
     }
 
     private var separator: some View {
@@ -63,7 +66,7 @@ struct NoteFormattingMenu: View {
                     Text(group.label)
                         .font(.caption.weight(.semibold))
                 }
-                SymbolImage(name: "chevron.down", size: Theme.Spacing.lg)
+                SymbolImage(name: "chevron.down", size: Theme.Spacing.md)
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
             .frame(
@@ -131,6 +134,7 @@ struct NoteFormattingMenu: View {
                                 .frame(width: Theme.Size.noteStatus, height: Theme.Size.noteStatus)
                         }
                         Text(item.label)
+                            .font(Theme.Typography.menuRow)
                         Spacer(minLength: Theme.Spacing.md)
                         if selectedCommands.contains(item.command) {
                             SymbolImage(name: "checkmark", size: Theme.Size.noteStatus)
@@ -141,9 +145,19 @@ struct NoteFormattingMenu: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .background(menuRowBackground(selectedCommands.contains(item.command)))
+                .background(
+                    menuRowBackground(
+                        selected: selectedCommands.contains(item.command),
+                        hovered: hoveredCommand == item.command))
                 .overlay(menuRowFocusBorder(.command(item.command)))
                 .focused($focused, equals: .command(item.command))
+                .onHover { hovered in
+                    if hovered {
+                        hoveredCommand = item.command
+                    } else if hoveredCommand == item.command {
+                        hoveredCommand = nil
+                    }
+                }
                 .accessibilityLabel(item.label)
                 .accessibilityAddTraits(
                     selectedCommands.contains(item.command) ? .isSelected : [])
@@ -174,9 +188,12 @@ struct NoteFormattingMenu: View {
             .stroke(focused == target ? Theme.Colors.border : .clear, lineWidth: 1)
     }
 
-    private func menuRowBackground(_ selected: Bool) -> some View {
+    private func menuRowBackground(selected: Bool, hovered: Bool) -> some View {
         RoundedRectangle(cornerRadius: Theme.Radius.menuRow, style: .continuous)
-            .fill(selected ? Theme.Colors.selection : .clear)
+            .fill(
+                selected
+                    ? Theme.Colors.selection
+                    : hovered ? Theme.Colors.menuHover : .clear)
     }
 
     private func menuRowFocusBorder(_ target: FocusTarget) -> some View {

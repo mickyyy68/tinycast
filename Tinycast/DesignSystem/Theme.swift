@@ -166,6 +166,7 @@ enum Theme {
         static let menuShortcut = Font.callout
         static let menuIcon = Font.body
         static let noteTitle = Font.headline
+        static let noteMetadata = Font.caption
     }
 
     enum Colors {

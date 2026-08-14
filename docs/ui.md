@@ -79,7 +79,7 @@ Always `RoundedRectangle(cornerRadius:, style: .continuous)` — continuous corn
 ### Size (`Theme.Size`)
 
 `panelWidth 750` · `panelHeight 475` · `headerHeight 44` · `bottomBarHeight 52` · `rowIcon 24` ·
-`keyCap 18` · `recorderKeyCap 16` · `menuButton 36` · `clipboardListWidth 290` · `menuWidth 276` · `menuIcon 16` ·
+`keyCap 18` · `recorderKeyCap 16` · `menuButton 36` · `clipboardListWidth 290` · `menuWidth 276` · `menuIcon 20` ·
 `settingsSidebar 184` · `settingsRowIcon 20` · `dialogWidth 420` · `dialogIcon 32` · `hudWidth 200` ·
 `hudHeight 100` · `volumeTrackHeight 6` · `volumeKnob 16` · `volumeReadout 38`
 
@@ -95,7 +95,7 @@ Notes adds `noteWidth 520`, `noteMinimumHeight 320`, `noteMaximumHeight 840`,
 
 System fonts only — **no fixed point sizes in views** (honors Dynamic Type). `searchField` is the one
 explicit size (20pt regular). Use `rowTitle` (`.body`), `sectionHeader` (`.subheadline.medium`),
-`rowTrailing`/`bar`/`menuRow`/`keyCap` etc. as named.
+`rowTrailing`/`bar`/`menuRow`/`keyCap`/`noteMetadata` etc. as named.
 
 ### Colors (`Theme.Colors`) — the white-alpha ramp
 
@@ -112,7 +112,7 @@ explicit size (20pt regular). Use `rowTitle` (`.body`), `sectionHeader` (`.subhe
 | `textTertiary`   | white 0.40     | placeholders, trailing kind labels               |
 | `cardFill`       | white 0.05     | settings/calc card fill                          |
 | `cardStroke`     | white 0.10     | settings/calc card border + inset dividers       |
-| `glassFrost`     | white 0.01     | whitish tint layered into the floating glass     |
+| `glassFrost`     | white 0.05     | whitish tint layered into the floating glass     |
 | `noteText`       | white 0.90     | Notes Markdown source                            |
 | `noteMarkup`     | white 0.45     | Markdown markers                                 |
 | `noteCode`       | white 0.72     | inline and fenced code                           |
@@ -145,7 +145,7 @@ Notes is a sibling surface, not a palette mode. `NotesPanel` uses the same borde
 non-activating, transparent AppKit recipe, but deliberately does not dismiss on resign-key. Its root
 applies `black panelDimming` → `VisualEffectView()` → one continuous `note` corner clip. Its ordinary
 content is a fixed header, editor or switcher region, and fixed footer. Header actions and the expanded
-footer formatting pill use glass.
+footer formatting pill use the shared frosted interactive glass.
 
 `NotesWindowController` owns every frame change. TextKit 2 supplies the laid-out editor height, the
 controller adds the header and footer, and tracks content in both directions between the 320-point
@@ -185,9 +185,10 @@ while outside clicks do not.
 The compact switcher is a glass floating control over the still-mounted editor and never changes the
 frame. Exposed editor clicks dismiss it; the editor cannot receive edits while it is open. The footer
 remains visible: a collapsed toggle or expanded formatting pill stays discoverable but disabled. Its
-plain search field uses the stable custom-prompt pattern and ends in one Close action; it has no separate
-clear control. The Notes label uses shared section spacing, and the scroll view uses the standard edge
-dissolve and thin scrollbar. Keyboard-navigable rows use the shared selection/hover ramp. The active row
+plain search field uses the stable custom-prompt pattern and ends in one plain `xmark` Close action; it has no separate
+clear control. The Notes label uses shared section spacing, and the scroll view uses a compact
+switcher-specific edge dissolve plus the shared thin scrollbar, keeping complete edge rows legible.
+Keyboard-navigable rows use the shared selection/hover ramp. The active row
 shows a blue Current marker and live character count; other rows show relative modification time and
 file size. Rename owns its draft until Return commits or Escape cancels, suspends row arrows, and leaves
 native Command-Delete intact; that shortcut moves the selected note to Trash only outside rename.
@@ -260,7 +261,7 @@ Source: `Theme.frosted(in:)`, `DesignSystem/PopoverMenu.swift`.
 
 Glass is **only** for floating controls, never the main surface.
 
-- `View.frosted(in:)` = `glassEffect(.regular.interactive().tint(glassFrost), in:)` + `.tint(.clear)` — interactive lensing with a whitish frost tint (`glassFrost`) so the glass reads brighter than clear. Used on the action-group capsule, the menu circle, `PopoverMenu` and a dialog's buttons — always _inside_ a window that already has a `VisualEffectView` behind it. Neither HUD uses it: on a panel of its own, glass has no backdrop to lens and falls back to an opaque backing that reads as a dark edge, so both take the panel recipe instead (see "Dialogs & HUD"). Tune the frost amount via the `glassFrost` token, not per call site.
+- `View.frosted(in:)` = `glassEffect(.regular.interactive().tint(glassFrost), in:)` + `.tint(.clear)` — interactive lensing with a whitish frost tint (`glassFrost`) so the glass reads brighter than clear. Used on action-group capsules, menu circles, the Notes formatting pill and dialog buttons — always _inside_ a window that already has a `VisualEffectView` behind it. Neither HUD uses it: on a panel of its own, glass has no backdrop to lens and falls back to an opaque backing that reads as a dark edge, so both take the panel recipe instead (see "Dialogs & HUD"). Tune the frost amount via the `glassFrost` token, not per call site.
 - **Menus are in-window overlays, not system popovers.** `.contextMenu`/`NSMenu` stall clicks for seconds inside a `LazyVStack` and spill outside the panel. Use `PopoverMenu` anchored to a bottom corner via `.overlay`, inset `menuInset` (8pt) so its own corner isn't clipped by the panel's.
 - **`PopoverMenu`** uses `glassEffect(.regular, in: RoundedRectangle(menuPanel 16))` with **no hand-tuned shadow** — Tahoe glass carries its own elevation; adding a drop shadow reads heavy and non-native.
 - `PopoverMenuRow`: leading glyph, label, trailing shortcut glyph, `menuHover` fill on hover, `menuRow 10` corner. Menus animate in with `.opacity + .scale(0.96)` from the anchored corner, `easeOut 0.14`.

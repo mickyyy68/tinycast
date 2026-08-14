@@ -7,6 +7,8 @@ final class NotesPanel: NSPanel {
     var onCreate: (() -> Void)?
     var onSearch: (() -> Void)?
     var onDelete: (() -> Bool)?
+    var onPointerMoved: ((CGPoint) -> Void)?
+    var onHoverDisarm: ((CGPoint) -> Void)?
 
     init(content: NSView) {
         super.init(
@@ -32,10 +34,19 @@ final class NotesPanel: NSPanel {
         animationBehavior = .none
         isReleasedWhenClosed = false
         isRestorable = false
+        acceptsMouseMovedEvents = true
         contentView = content
     }
 
     override func sendEvent(_ event: NSEvent) {
+        switch event.type {
+        case .mouseMoved:
+            onPointerMoved?(NSEvent.mouseLocation)
+        case .keyDown, .scrollWheel:
+            onHoverDisarm?(NSEvent.mouseLocation)
+        default:
+            break
+        }
         guard event.type == .keyDown else {
             super.sendEvent(event)
             return

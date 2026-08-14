@@ -40,9 +40,12 @@ final class NotesCoordinator {
     private(set) var activeFormattingCommands: Set<NoteMarkdownCommand> = [.normal]
     private(set) var switcherSelection: NoteID?
     private(set) var switcherFocusRevision = 0
+    @ObservationIgnored private(set) var switcherHoverHighlightArmed = false
+    private(set) var switcherHoverDisarmRevision = 0
     private var switcherRename = NoteSwitcherRenameState()
     private var windowVisibilityIntent = NoteWindowVisibilityIntent()
     private var restoresEditorAfterSearch = false
+    @ObservationIgnored private var switcherHoverAnchor = CGPoint.zero
 
     init(
         store: NotesStore,
@@ -151,6 +154,7 @@ final class NotesCoordinator {
             return
         }
         isSwitcherPresented = true
+        disarmSwitcherHover(pointerAt: NSEvent.mouseLocation)
         synchronizeFormattingInteraction()
         search.begin()
         switcherSelection = store.activeID ?? store.summaries.first?.id
@@ -211,6 +215,20 @@ final class NotesCoordinator {
             return
         }
         switcherSelection = notes[(index + offset + notes.count) % notes.count].id
+    }
+
+    func noteSwitcherPointerMoved(to location: CGPoint) {
+        guard isSwitcherPresented, !switcherHoverHighlightArmed,
+            HoverArming.isDeliberate(location, from: switcherHoverAnchor)
+        else { return }
+        switcherHoverHighlightArmed = true
+    }
+
+    func disarmSwitcherHover(pointerAt location: CGPoint) {
+        switcherHoverAnchor = location
+        guard switcherHoverHighlightArmed else { return }
+        switcherHoverHighlightArmed = false
+        switcherHoverDisarmRevision &+= 1
     }
 
     func selectSwitcherNote() {
