@@ -339,8 +339,9 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Clear a nonempty query, then type a different one; no rows from before the empty query reappear
 - Rename or Trash a row matching the active query; the old row disappears immediately and cannot be
   activated while the refreshed results are loading
-- Hide during Select, Rename, and the Trash confirmation; each operation may finish, but the panel stays
-  hidden even after a later reopen, and Trash selects next, then previous, then its fallback row
+- Hide during Select, Rename, and the Trash confirmation; each operation may finish, but its completion
+  does not reopen the panel. A later explicit Show Notes does, and Trash selects next, then previous,
+  then its fallback row
 - While Trash confirmation is open, externally reorder the notes; accepting selects the successor from
   the newly visible order rather than the order from before confirmation
 - Hide while Create is pending, and leave or dismiss Search Notes while a result is opening; filesystem
