@@ -76,13 +76,11 @@ struct NoteFormattingMenu: View {
             toolbarButtonBackground(
                 expandedGroup == group || group.isSelected(in: selectedCommands)))
         .overlay(groupFocusBorder(group))
-        .overlay(alignment: group == .list ? .topTrailing : .topLeading) {
+        .overlay(alignment: group == .list ? .bottomTrailing : .bottomLeading) {
             if expandedGroup == group {
                 groupMenu(group)
                     .fixedSize()
-                    .alignmentGuide(.top) { dimensions in
-                        dimensions[.bottom] + Theme.Spacing.xs
-                    }
+                    .offset(y: -Theme.Size.noteHeaderButton - Theme.Spacing.md)
             }
         }
         .focused($focused, equals: .command(group.representative))
