@@ -88,7 +88,7 @@ Command-N uses the create path and Command-P opens the compact switcher. Escape 
 rename without closing the switcher; otherwise it closes one layer per press: the switcher, expanded
 formatting, then the panel. Command-W and the leading Hide control hide directly. Hiding restores the
 prior external application or Tinycast window and flushes without delaying the order-out. It also
-invalidates the panel-presentation revision captured by an in-flight selection, rename, Trash, Create,
+advances the presentation generation captured by an in-flight selection, rename, Trash, Create,
 or Search Notes open; those file operations may finish, but their stale completion cannot reopen or
 focus the panel. Leaving or dismissing Search Notes invalidates its pending open before optionally
 restoring a previously suspended editor.
