@@ -108,7 +108,7 @@ final class NotesCoordinator {
     }
 
     func synchronizeSearch() {
-        search.refreshSummaries()
+        search.synchronizeSummaries()
     }
 
     func applyEnabled() {
@@ -340,7 +340,7 @@ final class NotesCoordinator {
                 return
             }
             switcherSelection = renamedID
-            search.refreshSummaries()
+            search.reconcileMutation()
             if renamedID == store.activeID,
                 presentationGeneration.permitsCompletion(
                     capturedGeneration: capturedGeneration,
@@ -389,7 +389,7 @@ final class NotesCoordinator {
                 afterRemoving: id,
                 from: switcherOrder,
                 fallback: store.activeID ?? store.summaries.first?.id)
-            search.refreshSummaries()
+            search.reconcileMutation()
             guard presentationGeneration.permitsCompletion(
                 capturedGeneration: capturedGeneration,
                 isVisible: windowController.isVisible)

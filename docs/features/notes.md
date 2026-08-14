@@ -126,8 +126,10 @@ searches titles and literal bodies in a cancellable detached worker. The active 
 draft; other notes come from disk. Fuzzy title hits rank above body-only hits, results are capped at 200,
 and a generation check prevents a superseded search from publishing. The last complete result set and
 its selected preview stay visible and usable until the latest nonempty query replaces the rows
-atomically. Collection mutations instead discard invalid rows immediately and refresh the active query
-without the typing debounce. Clearing the query also clears the nonempty result cache.
+atomically. Autosave and external summary changes coalesce behind a 400-millisecond quiet period, with
+duplicate view notifications sharing one refresh and the final scan reading the latest active draft.
+Rename and Trash instead discard invalid rows immediately and refresh the active query without a
+debounce. Clearing the query also clears the nonempty result cache.
 
 Return opens the selected note. Inline rename coordinates the file move; Escape cancels its draft, and
 row navigation pauses until the field is committed or cancelled. Command-Delete belongs to the

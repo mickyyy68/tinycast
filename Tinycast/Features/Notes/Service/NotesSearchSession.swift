@@ -3,6 +3,12 @@ import Foundation
 @MainActor
 @Observable
 final class NotesSearchSession {
+    private struct SearchInput: Equatable {
+        let summaries: [NoteSummary]
+        let activeID: NoteID?
+        let activeSource: String
+    }
+
     enum State: Sendable, Equatable {
         case idle
         case searching
@@ -33,20 +39,24 @@ final class NotesSearchSession {
     private unowned let store: NotesStore
     private let repository: NotesRepository
     private let debounce: Duration
+    private let summaryDebounce: Duration
     @ObservationIgnored private var searchTask: Task<Void, Never>?
     @ObservationIgnored private var searchWorker: Task<[NoteSearchResult], Never>?
     @ObservationIgnored private var previewTask: Task<Void, Never>?
     private var searchGeneration = 0
     private var previewGeneration = 0
+    private var synchronizedInput: SearchInput?
 
     init(
         store: NotesStore,
         repository: NotesRepository,
-        debounce: Duration = .milliseconds(120)
+        debounce: Duration = .milliseconds(120),
+        summaryDebounce: Duration = .milliseconds(400)
     ) {
         self.store = store
         self.repository = repository
         self.debounce = debounce
+        self.summaryDebounce = summaryDebounce
     }
 
     isolated deinit {
@@ -64,18 +74,28 @@ final class NotesSearchSession {
         query = updated
         let next = NoteSearch.Query(updated)
         guard previous.terms != next.terms else { return }
-        startSearch(next)
+        synchronizedInput = currentInput()
+        startSearch(next, delay: debounce)
     }
 
-    func refreshSummaries() {
+    func synchronizeSummaries() {
+        let input = currentInput()
+        guard input != synchronizedInput else { return }
+        synchronizedInput = input
         let parsed = NoteSearch.Query(query)
         if parsed.isEmpty {
-            guard let previewID else { return }
-            if store.summaries.contains(where: { $0.id == previewID }) {
-                loadPreview(previewID, force: true)
-            } else {
-                clearPreview()
-            }
+            schedulePreviewSynchronization()
+            return
+        }
+        startSearch(parsed, delay: summaryDebounce)
+    }
+
+    func reconcileMutation() {
+        let input = currentInput()
+        synchronizedInput = input
+        let parsed = NoteSearch.Query(query)
+        if parsed.isEmpty {
+            reconcilePreview(with: input)
             return
         }
         let summaries = Dictionary(uniqueKeysWithValues: store.summaries.map { ($0.id, $0) })
@@ -83,8 +103,7 @@ final class NotesSearchSession {
             guard let summary = summaries[result.id] else { return nil }
             return NoteSearchResult(summary: summary, score: result.score, excerpt: result.excerpt)
         }
-        resultsRevision &+= 1
-        startSearch(parsed, delay: false)
+        startSearch(parsed, delay: .zero, input: input)
     }
 
     func requestPreview(_ id: NoteID?) {
@@ -152,13 +171,18 @@ final class NotesSearchSession {
         searchWorker?.cancel()
         searchWorker = nil
         searchGeneration &+= 1
+        synchronizedInput = nil
         query = ""
         results = []
         state = .idle
         clearPreview()
     }
 
-    private func startSearch(_ parsed: NoteSearch.Query, delay: Bool = true) {
+    private func startSearch(
+        _ parsed: NoteSearch.Query,
+        delay: Duration,
+        input: SearchInput? = nil
+    ) {
         searchTask?.cancel()
         searchWorker?.cancel()
         searchGeneration &+= 1
@@ -171,24 +195,23 @@ final class NotesSearchSession {
         }
         state = .searching
         let repository = repository
-        let summaries = store.summaries
-        let activeID = store.activeID
-        let activeSource = store.source
-        let debounce = delay ? debounce : .zero
+        let fixedInput = input
         searchTask = Task { [weak self] in
             do {
-                try await Task.sleep(for: debounce)
+                try await Task.sleep(for: delay)
             } catch {
                 return
             }
             guard let self, !Task.isCancelled else { return }
+            let input = fixedInput ?? currentInput()
+            synchronizedInput = input
             let worker = Task.detached(priority: .userInitiated) {
                 Signposts.interval("Notes.search") {
                     repository.search(
                         parsed,
-                        summaries: summaries,
-                        activeID: activeID,
-                        activeSource: activeSource)
+                        summaries: input.summaries,
+                        activeID: input.activeID,
+                        activeSource: input.activeSource)
                 }
             }
             searchWorker = worker
@@ -200,6 +223,42 @@ final class NotesSearchSession {
             searchWorker = nil
             searchTask = nil
         }
+    }
+
+    private func schedulePreviewSynchronization() {
+        searchTask?.cancel()
+        searchWorker?.cancel()
+        searchGeneration &+= 1
+        let generation = searchGeneration
+        let delay = summaryDebounce
+        searchTask = Task { [weak self] in
+            do {
+                try await Task.sleep(for: delay)
+            } catch {
+                return
+            }
+            guard let self, !Task.isCancelled, generation == searchGeneration else { return }
+            let input = currentInput()
+            synchronizedInput = input
+            reconcilePreview(with: input)
+            searchTask = nil
+        }
+    }
+
+    private func reconcilePreview(with input: SearchInput) {
+        guard let previewID else { return }
+        if input.summaries.contains(where: { $0.id == previewID }) {
+            loadPreview(previewID, force: true)
+        } else {
+            clearPreview()
+        }
+    }
+
+    private func currentInput() -> SearchInput {
+        SearchInput(
+            summaries: store.summaries,
+            activeID: store.activeID,
+            activeSource: store.source)
     }
 
     private func clearPreview() {

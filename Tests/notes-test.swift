@@ -11,6 +11,7 @@ struct NotesTests {
         testSwitcherInteraction()
         testWindowLayout()
         try await testSearchRetainsResultsUntilReplacement()
+        try await testSearchSummaryRefreshCoalescing()
         try await testStoreCollectionAndExternalEdits()
         try await testCollectionMutationsRequireCleanDraft()
 
@@ -30,7 +31,8 @@ struct NotesTests {
         let search = NotesSearchSession(
             store: store,
             repository: repository,
-            debounce: .milliseconds(150))
+            debounce: .milliseconds(150),
+            summaryDebounce: .milliseconds(150))
 
         _ = await store.create()
         store.updateSource("alpha body")
@@ -39,6 +41,8 @@ struct NotesTests {
         _ = await store.create()
         let untitledID = try require(store.activeID)
         let betaID = try require(await store.rename(untitledID, to: "Beta"))
+        _ = await store.create()
+        let betaKeepID = try require(await store.rename(try require(store.activeID), to: "Beta Keep"))
 
         search.updateQuery("alpha")
         await waitUntil { search.state == .ready }
@@ -66,7 +70,9 @@ struct NotesTests {
             search.previewID == alphaID && search.previewState == .ready)
 
         await waitUntil { search.state == .ready }
-        check("the latest search replaces results atomically", search.results.map(\.id) == [betaID])
+        check(
+            "the latest search replaces results atomically",
+            Set(search.results.map(\.id)) == [betaID, betaKeepID])
         check("replacement results publish a preview refresh revision", search.resultsRevision > previousRevision)
         check(
             "replacement publication never blanks the retained preview",
@@ -82,20 +88,90 @@ struct NotesTests {
         check("replacement selection refreshes its preview", search.previewID == betaID)
 
         _ = try require(await store.rename(betaID, to: "Gamma"))
-        search.refreshSummaries()
+        search.reconcileMutation()
         check("rename removes its stale search row immediately", !search.results.contains { $0.id == betaID })
+        check("mutation reconciliation retains still-valid rows", search.results.map(\.id) == [betaKeepID])
         await waitUntil { search.state == .ready }
-        check("rename refreshes the current search without its stale match", search.results.isEmpty)
+        check("rename refreshes the current search without its stale match", search.results.map(\.id) == [betaKeepID])
 
         search.updateQuery("alpha")
         await waitUntil { search.state == .ready }
         check("the refreshed collection still finds another note", search.results.map(\.id) == [alphaID])
         let removedAlpha = await store.trash(alphaID)
         check("trash removes the searched note", removedAlpha)
-        search.refreshSummaries()
+        search.reconcileMutation()
         check("trash removes its stale search row immediately", !search.results.contains { $0.id == alphaID })
         await waitUntil { search.state == .ready }
         check("trash refreshes the current search without an actionable removed row", search.results.isEmpty)
+    }
+
+    private static func testSearchSummaryRefreshCoalescing() async throws {
+        let root = temporaryRoot("search-summary-refresh")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let repository = NotesRepository(applicationSupportDirectory: root)
+        let store = NotesStore(
+            repository: repository,
+            monitor: NoteFileMonitorProbe(),
+            loadSelection: { nil },
+            saveSelection: { _ in })
+        let search = NotesSearchSession(
+            store: store,
+            repository: repository,
+            debounce: .milliseconds(20),
+            summaryDebounce: .milliseconds(300))
+
+        _ = await store.create()
+        store.updateSource("alpha body")
+        await waitUntil { !store.isDirty && store.state == .ready }
+        let alphaID = try require(store.activeID)
+        _ = await store.create()
+        var changingID = try require(store.activeID)
+
+        search.updateQuery("alpha")
+        await waitUntil { search.state == .ready }
+        check("summary refresh starts with a retained matching row", search.results.map(\.id) == [alphaID])
+
+        changingID = try require(await store.rename(changingID, to: "Gamma"))
+        let duplicateRevision = search.resultsRevision
+        search.synchronizeSummaries()
+        try? await Task.sleep(for: .milliseconds(200))
+        search.synchronizeSummaries()
+        try? await Task.sleep(for: .milliseconds(150))
+        check(
+            "an identical summary notification does not restart the quiet period",
+            search.state == .ready && search.resultsRevision == duplicateRevision + 1)
+
+        changingID = try require(await store.rename(changingID, to: "Delta"))
+        let postponedRevision = search.resultsRevision
+        search.synchronizeSummaries()
+        try? await Task.sleep(for: .milliseconds(200))
+        changingID = try require(await store.rename(changingID, to: "Epsilon"))
+        search.synchronizeSummaries()
+        try? await Task.sleep(for: .milliseconds(150))
+        check(
+            "a changed summary snapshot restarts the quiet period",
+            search.state == .searching && search.resultsRevision == postponedRevision)
+        await waitUntil { search.state == .ready }
+        check("the latest changed snapshot publishes once", search.resultsRevision == postponedRevision + 1)
+
+        changingID = try require(await store.rename(changingID, to: "Zeta"))
+        search.synchronizeSummaries()
+        let queryRevision = search.resultsRevision
+        search.updateQuery("Zeta")
+        await waitUntil { search.state == .ready }
+        check("a query change supersedes a pending summary refresh", search.results.map(\.id) == [changingID])
+        try? await Task.sleep(for: .milliseconds(350))
+        check("the superseded summary refresh cannot publish later", search.resultsRevision == queryRevision + 1)
+
+        changingID = try require(await store.rename(changingID, to: "Eta"))
+        search.synchronizeSummaries()
+        let cancelledRevision = search.resultsRevision
+        search.cancel()
+        try? await Task.sleep(for: .milliseconds(350))
+        check(
+            "cancelling a summary refresh leaves no delayed publication",
+            search.state == .idle && search.results.isEmpty
+                && search.resultsRevision == cancelledRevision)
     }
 
     private static func testSwitcherInteraction() {

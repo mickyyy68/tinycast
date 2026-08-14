@@ -1,6 +1,11 @@
 import SwiftUI
 
 struct NotesSearchScreen: PaletteScreen {
+    private struct PreviewRequest: Equatable {
+        let id: NoteID?
+        let resultsRevision: Int
+    }
+
     let session: NotesSearchSession
     let store: NotesStore
     let notes: NotesCoordinator
@@ -32,11 +37,17 @@ struct NotesSearchScreen: PaletteScreen {
         return AnyView(
             content(selected: selected, scroll: scroll)
                 .onAppear { session.requestPreview(selected?.id) }
-                .onChange(of: selected?.id) { _, id in session.requestPreview(id) }
-                .onChange(of: session.resultsRevision) { _, _ in
-                    session.refreshPreview(selected?.id)
+                .onChange(of: PreviewRequest(
+                    id: selected?.id,
+                    resultsRevision: session.resultsRevision)
+                ) { previous, current in
+                    if previous.id == current.id {
+                        session.refreshPreview(current.id)
+                    } else {
+                        session.requestPreview(current.id)
+                    }
                 }
-                .onChange(of: store.summaries) { _, _ in session.refreshSummaries() }
+                .onChange(of: store.summaries) { _, _ in session.synchronizeSummaries() }
                 .onChange(of: store.source) { _, _ in session.refreshActivePreview() }
         )
     }
