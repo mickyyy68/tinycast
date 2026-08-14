@@ -297,6 +297,10 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Header and footer chrome dim while inactive, brighten on whole-panel hover or keyboard focus, and
   retain every pointer and accessibility target; note content never dims
 - Command-P focuses switcher search, arrows move selection, Return opens, and Command-N creates
+- During switcher rename, arrows leave the row selection fixed, Return commits, and Escape cancels the
+  draft without closing the switcher; a second Escape closes it
+- Command-Delete invokes Trash from switcher search, but retains native text deletion in the editor and
+  rename field
 - Switching short → long → short resizes to each document's laid-out height without retaining or
   publishing the previous document's measurement
 - Empty switcher search reads the complete recent list; title and body searches rank correctly and a

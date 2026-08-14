@@ -18,13 +18,6 @@ struct NoteFormattingMenu: View {
                         .offset(y: -expandedGroup.menuHeight - Theme.Spacing.xs)
                 }
             }
-        .onAppear {
-            guard isInteractive else { return }
-            Task { @MainActor in
-                await Task.yield()
-                focused = initialFocus
-            }
-        }
         .onChange(of: isInteractive) { _, interactive in
             guard interactive else {
                 updatePresentation {
@@ -32,10 +25,6 @@ struct NoteFormattingMenu: View {
                     focused = nil
                 }
                 return
-            }
-            Task { @MainActor in
-                await Task.yield()
-                focused = initialFocus
             }
         }
         .onMoveCommand(perform: moveFocus)
@@ -190,16 +179,6 @@ struct NoteFormattingMenu: View {
         var transaction = Transaction(animation: nil)
         transaction.disablesAnimations = true
         withTransaction(transaction, update)
-    }
-
-    private var initialFocus: FocusTarget {
-        for group in FormatGroup.allCases where group.isSelected(in: selectedCommands) {
-            return .command(group.representative)
-        }
-        return toolbarTargets.first {
-            guard case .command(let command) = $0 else { return false }
-            return selectedCommands.contains(command)
-        } ?? .command(.normal)
     }
 
     private var toolbarTargets: [FocusTarget] {

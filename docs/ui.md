@@ -162,8 +162,9 @@ one trailing glass capsule contains Reveal, Switcher, and Create. Header and foo
 visible and fades to `noteInactiveChrome 0.35` only while neither the pointer nor keyboard focus is
 inside the panel. Clean Saved is always hidden; loading, dirty, saving, failure, and conflict status sits
 beside the title without moving it, and actionable failures reopen their recovery report. Empty header
-space remains draggable. Escape closes one layer at a time: switcher, expanded formatting, then Notes.
-Command-W and Hide order the panel out; focus loss leaves it visible.
+space remains draggable. A rename field consumes Escape to cancel its draft; otherwise Escape closes one
+layer at a time: switcher, expanded formatting, then Notes. Command-W and Hide order the panel out;
+focus loss leaves it visible.
 
 The editor is one native TextKit 2 surface backed by a literal-source/display projection. Inactive
 Markdown markers occupy no layout width; entering a construct reveals its source without moving the
@@ -181,7 +182,9 @@ frame. Exposed editor clicks dismiss it; the editor cannot receive edits while i
 remains visible: a collapsed toggle or expanded formatting pill stays discoverable but disabled. Its
 plain search field, Notes label, and keyboard-navigable rows use the shared selection/hover ramp. The
 active row shows a blue Current marker and live character count; other rows show relative modification
-time and file size. Rename and Trash remain row actions rather than adding another toolbar or window.
+time and file size. Rename owns its draft until Return commits or Escape cancels, suspends row arrows,
+and leaves native Command-Delete intact; that shortcut moves the selected note to Trash only outside
+rename. Rename and Trash remain row actions rather than adding another toolbar or window.
 The separate Search Notes command uses the main palette's
 Clipboard-style split: a 290-point date-sectioned title list, the shared vertical hairline, and a
 read-only rendered Markdown preview. Typed results drop date headers to preserve relevance order.

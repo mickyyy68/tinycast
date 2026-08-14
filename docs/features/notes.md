@@ -84,10 +84,10 @@ monitoring or debounce work running.
 The optional Notes menu-bar item is a direct entry point, not a second notes surface: clicking its
 `text.page` symbol runs **Show Notes** and opens or focuses the same floating editor.
 
-Command-N uses the create path and Command-P opens the compact switcher. Escape closes one layer per
-press: the switcher first, expanded formatting next, then the panel. Command-W and the leading Hide
-control hide directly. Hiding restores the prior external application or Tinycast window and flushes
-without delaying the order-out.
+Command-N uses the create path and Command-P opens the compact switcher. Escape first cancels an inline
+rename without closing the switcher; otherwise it closes one layer per press: the switcher, expanded
+formatting, then the panel. Command-W and the leading Hide control hide directly. Hiding restores the
+prior external application or Tinycast window and flushes without delaying the order-out.
 
 The 520-point editor surface retains a 320-point minimum and grows to the smaller of 840 points or the
 display height minus two 16-point margins. Its fixed header keeps the display-only active title exactly
@@ -114,9 +114,11 @@ searches titles and literal bodies in a cancellable detached worker. The active 
 draft; other notes come from disk. Fuzzy title hits rank above body-only hits, results are capped at 200,
 and a generation check prevents a superseded search from publishing.
 
-Return opens the selected note. Inline rename coordinates the file move. Command-Delete or the row
-action confirms through `DialogController`, then moves the file through `FileManager.trashItem` after a
-revision check. Deleting the last note creates a fresh Untitled note.
+Return opens the selected note. Inline rename coordinates the file move; Escape cancels its draft, and
+row navigation pauses until the field is committed or cancelled. Command-Delete belongs to the
+non-renaming switcher only, while the editor and rename field retain native text deletion. The shortcut
+or row action confirms through `DialogController`, then moves the file through
+`FileManager.trashItem` after a revision check. Deleting the last note creates a fresh Untitled note.
 
 ## Search palette
 

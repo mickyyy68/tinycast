@@ -40,6 +40,7 @@ final class NotesCoordinator {
     private(set) var activeFormattingCommands: Set<NoteMarkdownCommand> = [.normal]
     private(set) var switcherSelection: NoteID?
     private(set) var switcherFocusRevision = 0
+    private var switcherRename = NoteSwitcherRenameState()
     private var restoresEditorAfterSearch = false
 
     init(
@@ -87,6 +88,13 @@ final class NotesCoordinator {
     var isSearching: Bool { search.isSearching }
     var visibleNotes: [NoteSummary] { search.visibleNotes }
     var noteSummaries: [NoteSummary] { store.summaries }
+    var switcherEditingID: NoteID? { switcherRename.id }
+    var isRenamingSwitcherNote: Bool { switcherRename.isActive }
+    var switcherTitleDraftBinding: Binding<String> {
+        Binding(
+            get: { [weak self] in self?.switcherRename.draft ?? "" },
+            set: { [weak self] in self?.switcherRename.updateDraft($0) })
+    }
     var isFormattingExpanded: Bool { presentation.isFormattingExpanded }
     var isFormattingInteractive: Bool {
         isFormattingExpanded
@@ -149,6 +157,7 @@ final class NotesCoordinator {
 
     func closeSwitcher(focusEditor: Bool = true) {
         guard isSwitcherPresented || !search.query.isEmpty else { return }
+        switcherRename.cancel()
         isSwitcherPresented = false
         synchronizeFormattingInteraction()
         switcherSelection = nil
@@ -204,6 +213,27 @@ final class NotesCoordinator {
     func selectSwitcherNote() {
         guard let switcherSelection else { return }
         select(switcherSelection)
+    }
+
+    func activateSwitcherNote(_ id: NoteID) {
+        switcherRename.cancel()
+        select(id)
+    }
+
+    func beginSwitcherRename(_ summary: NoteSummary) {
+        switcherRename.begin(id: summary.id, title: summary.title)
+    }
+
+    func commitSwitcherRename() {
+        guard let committed = switcherRename.commit() else { return }
+        rename(committed.id, to: committed.title)
+        switcherFocusRevision &+= 1
+    }
+
+    func cancelSwitcherRename() {
+        guard switcherRename.isActive else { return }
+        switcherRename.cancel()
+        switcherFocusRevision &+= 1
     }
 
     func select(_ id: NoteID) {
@@ -287,6 +317,15 @@ final class NotesCoordinator {
     func trashSwitcherSelection() {
         guard let id = switcherSelection ?? store.activeID else { return }
         trash(id)
+    }
+
+    func handleDeleteShortcut() -> Bool {
+        guard NoteShortcutPolicy.handlesDelete(
+            switcherPresented: isSwitcherPresented,
+            renameActive: switcherRename.isActive)
+        else { return false }
+        trashSwitcherSelection()
+        return true
     }
 
     func trash(_ id: NoteID) {

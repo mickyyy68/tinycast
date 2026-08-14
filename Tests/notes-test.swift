@@ -8,12 +8,41 @@ struct NotesTests {
     static func main() async throws {
         try testRepositoryAndSearch()
         testMarkdownEditorModel()
+        testSwitcherInteraction()
         testWindowLayout()
         try await testStoreCollectionAndExternalEdits()
         try await testCollectionMutationsRequireCleanDraft()
 
         print(failures == 0 ? "Notes tests passed" : "\(failures) tests failed")
         exit(failures == 0 ? 0 : 1)
+    }
+
+    private static func testSwitcherInteraction() {
+        let id = NoteID(rawValue: "Project.md")
+        var rename = NoteSwitcherRenameState()
+        check("switcher rename starts inactive", !rename.isActive)
+        rename.begin(id: id, title: "Project")
+        check("switcher rename captures identity and title", rename.id == id && rename.draft == "Project")
+        rename.updateDraft("Project plan")
+        check("switcher rename updates its draft", rename.draft == "Project plan")
+        let committed = rename.commit()
+        check(
+            "switcher rename commits once and clears its state",
+            committed?.id == id && committed?.title == "Project plan" && !rename.isActive)
+        check("an inactive rename cannot commit", rename.commit() == nil)
+        rename.begin(id: id, title: "Discarded")
+        rename.cancel()
+        check("cancelling rename clears identity and draft", rename.id == nil && rename.draft.isEmpty)
+
+        check(
+            "Command-Delete belongs to a non-renaming switcher",
+            NoteShortcutPolicy.handlesDelete(switcherPresented: true, renameActive: false))
+        check(
+            "Command-Delete remains native while renaming",
+            !NoteShortcutPolicy.handlesDelete(switcherPresented: true, renameActive: true))
+        check(
+            "Command-Delete remains native in the editor",
+            !NoteShortcutPolicy.handlesDelete(switcherPresented: false, renameActive: false))
     }
 
     private static func testRepositoryAndSearch() throws {

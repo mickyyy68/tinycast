@@ -156,7 +156,7 @@ final class NotesWindowController: NSObject, NSWindowDelegate {
         panel.onEscape = { [weak coordinator] in coordinator?.handleEscape() }
         panel.onCreate = { [weak coordinator] in coordinator?.createNote() }
         panel.onSearch = { [weak coordinator] in coordinator?.openSwitcher() }
-        panel.onDelete = { [weak coordinator] in coordinator?.trashSwitcherSelection() }
+        panel.onDelete = { [weak coordinator] in coordinator?.handleDeleteShortcut() ?? false }
         panel.delegate = self
         panel.setFrameAutosaveName(Self.frameAutosaveName)
         self.panel = panel
